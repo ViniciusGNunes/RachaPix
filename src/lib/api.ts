@@ -294,7 +294,7 @@ export interface MemberPixDto {
 
 // ================= API Client =================
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5080';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5080').replace(/\/+$/, '');
 
 export class ApiError extends Error {
   status: number;
