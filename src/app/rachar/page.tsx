@@ -24,6 +24,7 @@ import {
 } from '@/lib/formatters';
 import { getCitiesByState } from '@/lib/ibge';
 import { getLastCity, saveLastCity, saveSplit, type LastCity } from '@/lib/storage';
+import { absoluteUrl, splitAdminPath, splitPath } from '@/lib/routes';
 
 const DEFAULT_CITY = 'BRASIL';
 
@@ -294,11 +295,10 @@ export default function RacharPage() {
     }
   };
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
 
   if (createdSplit) {
-    const publicUrl = `${origin}/r/${createdSplit.slug}`;
-    const adminUrl = `${origin}/r/${createdSplit.slug}/admin?token=${createdSplit.adminToken}`;
+    const publicUrl = absoluteUrl(splitPath(createdSplit.slug));
+    const adminUrl = absoluteUrl(splitAdminPath(createdSplit.slug, createdSplit.adminToken));
 
     return (
       <div className="max-w-2xl mx-auto px-4 py-12">
@@ -360,14 +360,14 @@ export default function RacharPage() {
           {/* Navigation Buttons */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-zinc-800">
             <Link
-              href={`/r/${createdSplit.slug}`}
+              href={splitPath(createdSplit.slug)}
               className="w-full py-3 px-4 rounded-xl border border-zinc-800 font-semibold text-zinc-200 hover:bg-zinc-900 text-center text-sm flex items-center justify-center gap-2 transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
               Ver Página Pública
             </Link>
             <Link
-              href={`/r/${createdSplit.slug}/admin?token=${createdSplit.adminToken}`}
+              href={splitAdminPath(createdSplit.slug, createdSplit.adminToken)}
               className="w-full py-3 px-4 rounded-xl bg-zinc-50 text-zinc-950 font-semibold hover:bg-zinc-200 text-center text-sm flex items-center justify-center gap-2 transition-colors"
             >
               <Shield className="w-4 h-4" />

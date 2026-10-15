@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, use } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -10,6 +10,7 @@ import {
 } from '@/lib/api';
 import { formatBRL, formatDateTime } from '@/lib/formatters';
 import { getSavedSplitToken, removeSavedSplit, saveSplit } from '@/lib/storage';
+import { absoluteUrl, splitAdminPath, splitPath } from '@/lib/routes';
 import { CopyButton } from '@/components/ui/CopyButton';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
@@ -26,15 +27,10 @@ import {
   RotateCcw,
 } from 'lucide-react';
 
-interface PageProps {
-  params: Promise<{ slug: string }>;
-}
-
-function SplitAdminContent({ params }: PageProps) {
-  const resolvedParams = use(params);
-  const slug = resolvedParams.slug;
+function SplitAdminContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const slug = searchParams.get('slug') ?? '';
 
   const tokenFromQuery = searchParams.get('token');
   const [token, setToken] = useState<string>(tokenFromQuery || '');
@@ -120,7 +116,7 @@ function SplitAdminContent({ params }: PageProps) {
     e.preventDefault();
     if (!inputToken.trim()) return;
     setToken(inputToken.trim());
-    router.replace(`/r/${slug}/admin?token=${encodeURIComponent(inputToken.trim())}`);
+    router.replace(splitAdminPath(slug, inputToken.trim()));
   };
 
   const handleRejectClaim = async (participantId: string) => {
@@ -168,8 +164,7 @@ function SplitAdminContent({ params }: PageProps) {
     }
   };
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const publicUrl = `${origin}/r/${slug}`;
+  const publicUrl = absoluteUrl(splitPath(slug));
 
   // If no token provided yet
   if (!token && !loading) {
@@ -207,7 +202,7 @@ function SplitAdminContent({ params }: PageProps) {
 
           <div className="pt-2">
             <Link
-              href={`/r/${slug}`}
+              href={splitPath(slug)}
               className="text-xs text-zinc-400 hover:text-zinc-300"
             >
               &larr; Voltar para a página pública de pagamento
@@ -298,7 +293,7 @@ function SplitAdminContent({ params }: PageProps) {
 
           <div className="flex items-center gap-2">
             <Link
-              href={`/r/${slug}`}
+              href={splitPath(slug)}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-800 text-xs font-semibold text-zinc-300 hover:bg-zinc-900 transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
@@ -526,7 +521,7 @@ function SplitAdminContent({ params }: PageProps) {
   );
 }
 
-export default function SplitAdminPage(props: PageProps) {
+export default function SplitAdminPage() {
   return (
     <React.Suspense
       fallback={
@@ -536,7 +531,7 @@ export default function SplitAdminPage(props: PageProps) {
         </div>
       }
     >
-      <SplitAdminContent {...props} />
+      <SplitAdminContent />
     </React.Suspense>
   );
 }

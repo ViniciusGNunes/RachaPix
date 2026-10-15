@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, use } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   api,
   ApiError,
@@ -11,6 +12,7 @@ import {
 } from '@/lib/api';
 import { formatBRL, formatDate } from '@/lib/formatters';
 import { getSavedSplitToken } from '@/lib/storage';
+import { splitAdminPath } from '@/lib/routes';
 import { PixQrModal } from '@/components/splits/PixQrModal';
 import { CopyButton } from '@/components/ui/CopyButton';
 import { Badge } from '@/components/ui/Badge';
@@ -25,13 +27,8 @@ import {
   RefreshCw,
 } from 'lucide-react';
 
-interface PageProps {
-  params: Promise<{ slug: string }>;
-}
-
-function PublicSplitContent({ params }: PageProps) {
-  const resolvedParams = use(params);
-  const slug = resolvedParams.slug;
+function PublicSplitContent() {
+  const slug = useSearchParams().get('slug') ?? '';
 
   const [split, setSplit] = useState<SplitPublicDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -224,7 +221,7 @@ function PublicSplitContent({ params }: PageProps) {
 
           {savedToken && (
             <Link
-              href={`/r/${split.slug}/admin?token=${savedToken}`}
+              href={splitAdminPath(split.slug, savedToken)}
               className="text-xs font-semibold text-emerald-400 hover:underline flex items-center gap-1"
             >
               <Shield className="w-3.5 h-3.5" /> Painel Admin
@@ -356,7 +353,7 @@ function PublicSplitContent({ params }: PageProps) {
   );
 }
 
-export default function PublicSplitPage(props: PageProps) {
+export default function PublicSplitPage() {
   return (
     <React.Suspense
       fallback={
@@ -366,7 +363,7 @@ export default function PublicSplitPage(props: PageProps) {
         </div>
       }
     >
-      <PublicSplitContent {...props} />
+      <PublicSplitContent />
     </React.Suspense>
   );
 }

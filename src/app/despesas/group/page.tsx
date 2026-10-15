@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, use } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   api,
   ApiError,
@@ -34,6 +34,7 @@ import {
 import { Modal } from '@/components/ui/Modal';
 import { CopyButton } from '@/components/ui/CopyButton';
 import { getGroupCredentials, removeSavedGroup, saveGroup } from '@/lib/storage';
+import { absoluteUrl, groupPath } from '@/lib/routes';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { PixQrModal } from '@/components/splits/PixQrModal';
@@ -56,10 +57,6 @@ import {
   QrCode,
   ArrowLeft,
 } from 'lucide-react';
-
-interface PageProps {
-  params: Promise<{ groupId: string }>;
-}
 
 type TabType = 'expenses' | 'balances' | 'settlements' | 'stats' | 'members';
 
@@ -91,9 +88,8 @@ const PAYMENT_METHODS: PaymentMethod[] = [
   'Other',
 ];
 
-function GroupDetailContent({ params }: PageProps) {
-  const resolvedParams = use(params);
-  const groupId = resolvedParams.groupId;
+function GroupDetailContent() {
+  const groupId = useSearchParams().get('id') ?? '';
   const router = useRouter();
 
   // Active Tab
@@ -258,7 +254,7 @@ function GroupDetailContent({ params }: PageProps) {
       setIsAdmin(!!credentials?.adminToken);
       const shareToken = credentials?.accessToken ?? credentials?.adminToken;
       setShareUrl(
-        `${window.location.origin}/despesas/${groupId}${shareToken ? `#t=${shareToken}` : ''}`
+        `${absoluteUrl(groupPath(groupId))}${shareToken ? `#t=${shareToken}` : ''}`
       );
       setLoading(true);
       setError(null);
@@ -2001,7 +1997,7 @@ function GroupDetailContent({ params }: PageProps) {
   );
 }
 
-export default function GroupDetailPage(props: PageProps) {
+export default function GroupDetailPage() {
   return (
     <React.Suspense
       fallback={
@@ -2011,7 +2007,7 @@ export default function GroupDetailPage(props: PageProps) {
         </div>
       }
     >
-      <GroupDetailContent {...props} />
+      <GroupDetailContent />
     </React.Suspense>
   );
 }

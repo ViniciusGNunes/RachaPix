@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getSavedSplits, SavedSplit } from '@/lib/storage';
+import { splitAdminPath, splitPath } from '@/lib/routes';
 import { formatBRL, formatDate } from '@/lib/formatters';
 
 export default function HomePage() {
@@ -82,14 +83,14 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-center gap-4 text-sm">
                   <Link
-                    href={`/r/${split.slug}`}
+                    href={splitPath(split.slug)}
                     className="text-zinc-400 hover:text-zinc-50 transition-colors"
                   >
                     Abrir
                   </Link>
                   {split.adminToken && (
                     <Link
-                      href={`/r/${split.slug}/admin?token=${split.adminToken}`}
+                      href={splitAdminPath(split.slug, split.adminToken)}
                       className="text-zinc-50 underline underline-offset-4 decoration-zinc-600 hover:decoration-zinc-300 transition-colors"
                     >
                       Administrar

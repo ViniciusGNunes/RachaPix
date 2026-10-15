@@ -1,0 +1,13 @@
+// Static export (GitHub Pages) cannot pre-render runtime ids, so ids travel in the query string.
+export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
+export const splitPath = (slug: string) => `/r?slug=${encodeURIComponent(slug)}`;
+
+export const splitAdminPath = (slug: string, token?: string | null) =>
+  `/r/admin?slug=${encodeURIComponent(slug)}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
+
+export const groupPath = (id: string) => `/despesas/group?id=${encodeURIComponent(id)}`;
+
+/** Absolute URL for sharing; `path` is an app route from the helpers above. */
+export const absoluteUrl = (path: string) =>
+  `${typeof window !== 'undefined' ? window.location.origin : ''}${BASE_PATH}${path}`;

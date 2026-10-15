@@ -19,6 +19,7 @@ import {
 } from '@/lib/formatters';
 import { Select } from '@/components/ui/Select';
 import { getSavedGroups, removeSavedGroup, saveGroup } from '@/lib/storage';
+import { groupPath } from '@/lib/routes';
 import { Modal } from '@/components/ui/Modal';
 import {
   Users,
@@ -161,7 +162,7 @@ export default function DespesasPage() {
         { id: '1', name: '', pixKey: '', pixKeyType: 'Email' },
         { id: '2', name: '', pixKey: '', pixKeyType: 'Email' },
       ]);
-      router.push(`/despesas/${newGroup.id}`);
+      router.push(groupPath(newGroup.id));
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         setModalError(err.message);
@@ -244,7 +245,7 @@ export default function DespesasPage() {
           {groups.map((group) => (
             <Link
               key={group.id}
-              href={`/despesas/${group.id}`}
+              href={groupPath(group.id)}
               className="group bg-zinc-950 rounded-xl p-6 border border-zinc-800 hover:border-zinc-700 hover:shadow-xl transition-all flex flex-col justify-between"
             >
               <div>
