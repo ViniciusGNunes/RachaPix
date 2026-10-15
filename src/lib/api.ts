@@ -294,7 +294,8 @@ export interface MemberPixDto {
 
 // ================= API Client =================
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5080').replace(/\/+$/, '');
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5080';
+const API_BASE_URL = RAW_API_URL.endsWith('/') ? RAW_API_URL.slice(0, -1) : RAW_API_URL;
 
 export class ApiError extends Error {
   status: number;
@@ -308,20 +309,57 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const url = `${API_BASE_URL}${path}`;
-  const headers = new Headers(options.headers || {});
-
+function attachGroupToken(headers: Headers, path: string): void {
   const groupMatch = /^\/api\/groups\/([0-9a-fA-F-]{36})(?:\/|\?|$)/.exec(path);
-  if (groupMatch && !headers.has('X-Group-Token')) {
-    const credentials = getGroupCredentials(groupMatch[1]);
-    const token = credentials?.adminToken ?? credentials?.accessToken;
-    if (token) headers.set('X-Group-Token', token);
-  }
-  
+  if (!groupMatch || headers.has('X-Group-Token')) return;
+
+  const credentials = getGroupCredentials(groupMatch[1]);
+  const token = credentials?.adminToken ?? credentials?.accessToken;
+  if (token) headers.set('X-Group-Token', token);
+}
+
+function buildRequestHeaders(path: string, options: RequestInit): Headers {
+  const headers = new Headers(options.headers || {});
+  attachGroupToken(headers, path);
+
   if (!headers.has('Content-Type') && options.body && typeof options.body === 'string') {
     headers.set('Content-Type', 'application/json');
   }
+  return headers;
+}
+
+function describeProblem(problem: ProblemDetails, fallback: string): string {
+  if (problem.detail && problem.detail !== 'One or more validation errors occurred.') {
+    return problem.detail;
+  }
+  if (problem.errors && Object.keys(problem.errors).length > 0) {
+    const errorList = Object.values(problem.errors).flat();
+    return errorList.length > 0 ? errorList.join(', ') : fallback;
+  }
+  if (problem.detail) return problem.detail;
+  if (problem.title) return problem.title;
+  return fallback;
+}
+
+async function buildApiError(response: Response): Promise<ApiError> {
+  let problem: ProblemDetails | undefined;
+  const fallback = `Erro HTTP ${response.status}: ${response.statusText}`;
+  let errorMessage = fallback;
+
+  try {
+    const data = await response.json();
+    problem = data as ProblemDetails;
+    errorMessage = describeProblem(problem, fallback);
+  } catch {
+    // not JSON
+  }
+
+  return new ApiError(response.status, errorMessage, problem);
+}
+
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const url = `${API_BASE_URL}${path}`;
+  const headers = buildRequestHeaders(path, options);
 
   const response = await fetch(url, {
     ...options,
@@ -329,27 +367,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   });
 
   if (!response.ok) {
-    let problem: ProblemDetails | undefined;
-    let errorMessage = `Erro HTTP ${response.status}: ${response.statusText}`;
-
-    try {
-      const data = await response.json();
-      problem = data as ProblemDetails;
-      if (problem.detail && problem.detail !== 'One or more validation errors occurred.') {
-        errorMessage = problem.detail;
-      } else if (problem.errors && Object.keys(problem.errors).length > 0) {
-        const errorList = Object.values(problem.errors).flat();
-        if (errorList.length > 0) errorMessage = errorList.join(', ');
-      } else if (problem.detail) {
-        errorMessage = problem.detail;
-      } else if (problem.title) {
-        errorMessage = problem.title;
-      }
-    } catch {
-      // not JSON
-    }
-
-    throw new ApiError(response.status, errorMessage, problem);
+    throw await buildApiError(response);
   }
 
   if (response.status === 204) {
