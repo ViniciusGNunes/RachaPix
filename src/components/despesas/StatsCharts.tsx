@@ -5,6 +5,8 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
@@ -14,52 +16,90 @@ import {
   Cell,
 } from 'recharts';
 import { StatsDto } from '@/lib/api';
-import { formatBRL, CATEGORY_LABELS, PAYMENT_METHOD_LABELS } from '@/lib/formatters';
+import { Money } from '@/components/ui/Money';
+import { useIsMobile } from '@/lib/useIsMobile';
+import { formatBRL, CATEGORY_LABELS } from '@/lib/formatters';
 
 interface StatsChartsProps {
   stats: StatsDto;
 }
 
 const COLORS = [
-  '#fafafa',
-  '#a1a1aa',
-  '#52525b',
-  '#34d399',
-  '#fbbf24',
-  '#fb7185',
-  '#60a5fa',
-  '#c084fc',
-  '#2dd4bf',
-  '#3f3f46',
+  'var(--accent)',
+  'var(--color-blue-400)',
+  'var(--color-purple-400)',
+  'var(--color-amber-400)',
+  'var(--color-rose-400)',
+  'var(--color-emerald-400)',
+  'var(--color-blue-300)',
+  'var(--color-emerald-300)',
+  'var(--color-rose-300)',
+  'var(--color-zinc-400)',
 ];
 
-const AXIS_TICK = { fontSize: 11, fill: '#a1a1aa' };
-const AXIS_LINE = { stroke: '#27272a' };
+const AXIS_TICK = { fontSize: 11, fill: 'var(--color-zinc-400)' };
+const AXIS_LINE = { stroke: 'var(--color-zinc-800)' };
 const TOOLTIP_STYLE = {
-  backgroundColor: '#09090b',
-  border: '1px solid #27272a',
-  borderRadius: 8,
+  backgroundColor: 'var(--color-zinc-900)',
+  border: '1px solid var(--color-zinc-700)',
+  borderRadius: 12,
+  padding: '8px 12px',
   fontSize: 12,
-  color: '#fafafa',
+  color: 'var(--color-zinc-50)',
+  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
 };
 const TOOLTIP_PROPS = {
   contentStyle: TOOLTIP_STYLE,
-  labelStyle: { color: '#a1a1aa' },
-  itemStyle: { color: '#fafafa' },
-  cursor: { fill: 'rgba(250,250,250,0.04)' },
+  labelStyle: { color: 'var(--color-zinc-400)', fontWeight: 500, marginBottom: 4 },
+  itemStyle: { color: 'var(--color-zinc-50)' },
+  cursor: { fill: 'rgba(255, 255, 255, 0.03)' },
 };
 
+interface BarRow {
+  label: string;
+  value: number;
+  color: string;
+}
+
+function BarList({ rows }: { rows: BarRow[] }) {
+  const total = rows.reduce((acc, r) => acc + r.value, 0);
+  const max = rows.reduce((acc, r) => Math.max(acc, r.value), 0);
+  return (
+    <ul className="space-y-3.5 my-auto py-2">
+      {rows.map((r, i) => (
+        <li key={`${r.label}-${i}`}>
+          <div className="flex items-baseline justify-between gap-3 text-sm">
+            <span className="flex items-center gap-2 min-w-0 text-zinc-200">
+              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: r.color }} />
+              <span className="truncate">{r.label}</span>
+            </span>
+            <span className="tabular-nums text-zinc-50 font-semibold shrink-0">
+              <Money value={r.value} />
+              {total > 0 && (
+                <span className="text-zinc-400 font-normal text-xs ml-1.5">
+                  {Math.round((r.value / total) * 100)}%
+                </span>
+              )}
+            </span>
+          </div>
+          <div className="mt-1.5 h-2 rounded-full bg-zinc-800/80 overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{ width: `${max > 0 ? (r.value / max) * 100 : 0}%`, backgroundColor: r.color }}
+            />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function StatsCharts({ stats }: StatsChartsProps) {
+  const isMobile = useIsMobile();
   // Format data for Category Pie Chart
   const categoryData = (stats.byCategory || []).map((c) => ({
     name: CATEGORY_LABELS[c.category] || c.category,
     value: c.total,
-  }));
-
-  // Format data for Payment Method Bar Chart
-  const paymentData = (stats.byPaymentMethod || []).map((p) => ({
-    name: PAYMENT_METHOD_LABELS[p.paymentMethod] || p.paymentMethod,
-    total: p.total,
   }));
 
   // Format data for Member Comparison Chart
@@ -76,16 +116,18 @@ export function StatsCharts({ stats }: StatsChartsProps) {
   }));
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
       {/* Chart 1: Gastos por Categoria */}
-      <div className=" bg-zinc-950 p-6 rounded-xl border border-zinc-800 flex flex-col">
-        <h3 className="font-bold text-white text-base mb-4">
+      <div className="bg-zinc-900/40 p-5 sm:p-6 rounded-2xl border border-zinc-800/80 flex flex-col shadow-sm">
+        <h3 className="font-semibold text-zinc-50 text-base mb-4 tracking-tight">
           Gastos por Categoria
         </h3>
         {categoryData.length === 0 ? (
-          <p className="text-xs text-zinc-500 my-auto text-center py-10">
+          <p className="text-xs text-zinc-400 my-auto text-center py-10">
             Nenhuma despesa para exibir no período.
           </p>
+        ) : isMobile ? (
+          <BarList rows={categoryData.map((c, i) => ({ label: c.name, value: c.value, color: COLORS[i % COLORS.length] }))} />
         ) : (
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -100,51 +142,50 @@ export function StatsCharts({ stats }: StatsChartsProps) {
                   dataKey="value"
                 >
                   {categoryData.map((_, index) => (
-                    <Cell key={`cell-${index}`} stroke="#09090b" fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} stroke="var(--color-zinc-950)" fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip {...TOOLTIP_PROPS}
                   formatter={(value: unknown) => [formatBRL(Number(value) || 0), 'Total']}
                 />
-                <Legend iconSize={8} wrapperStyle={{ fontSize: '11px', color: '#a1a1aa' }} />
+                <Legend iconSize={8} wrapperStyle={{ fontSize: '11px', color: 'var(--color-zinc-400)' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
         )}
       </div>
 
-      {/* Chart 2: Gastos por Forma de Pagamento */}
-      <div className=" bg-zinc-950 p-6 rounded-xl border border-zinc-800 flex flex-col">
-        <h3 className="font-bold text-white text-base mb-4">
-          Formas de Pagamento
-        </h3>
-        {paymentData.length === 0 ? (
-          <p className="text-xs text-zinc-500 my-auto text-center py-10">
-            Nenhuma despesa para exibir no período.
-          </p>
-        ) : (
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={paymentData} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                <XAxis dataKey="name" tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} interval={0} angle={-25} textAnchor="end" />
-                <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
-                <Tooltip {...TOOLTIP_PROPS} formatter={(value: unknown) => [formatBRL(Number(value) || 0), 'Total']} />
-                <Bar dataKey="total" fill="#fafafa" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </div>
-
       {/* Chart 3: Comparativo Pago vs Devido por Membro */}
-      <div className=" bg-zinc-950 p-6 rounded-xl border border-zinc-800 flex flex-col">
-        <h3 className="font-bold text-white text-base mb-4">
+      <div className="bg-zinc-900/40 p-5 sm:p-6 rounded-2xl border border-zinc-800/80 flex flex-col shadow-sm">
+        <h3 className="font-semibold text-zinc-50 text-base mb-4 tracking-tight">
           Comparativo por Membro (Pago vs Devido)
         </h3>
-        {memberData.length === 0 ? (
-          <p className="text-xs text-zinc-500 my-auto text-center py-10">
+        {memberData.length === 0 || memberData.every((m) => m.Pago === 0 && m.Devido === 0) ? (
+          <p className="text-xs text-zinc-400 my-auto text-center py-10">
             Nenhum membro com despesas no período.
           </p>
+        ) : isMobile ? (
+          <ul className="space-y-4 my-auto py-2">
+            {memberData.map((m) => {
+              const max = Math.max(m.Pago, m.Devido, 0.01);
+              return (
+                <li key={m.name} className="space-y-1.5">
+                  <p className="text-sm font-semibold text-zinc-200 truncate">{m.name}</p>
+                  {([['Pago', m.Pago, 'var(--accent)'], ['Devido', m.Devido, 'var(--color-amber-400)']] as const).map(([lbl, val, color]) => (
+                    <div key={lbl}>
+                      <div className="flex justify-between text-xs text-zinc-400">
+                        <span>{lbl}</span>
+                        <span className="tabular-nums text-zinc-200"><Money value={val} /></span>
+                      </div>
+                      <div className="mt-1 h-2 rounded-full bg-zinc-800/80 overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-300" style={{ width: `${(val / max) * 100}%`, backgroundColor: color }} />
+                      </div>
+                    </div>
+                  ))}
+                </li>
+              );
+            })}
+          </ul>
         ) : (
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -152,33 +193,47 @@ export function StatsCharts({ stats }: StatsChartsProps) {
                 <XAxis dataKey="name" tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} />
                 <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
                 <Tooltip {...TOOLTIP_PROPS} formatter={(value: unknown) => [formatBRL(Number(value) || 0)]} />
-                <Legend iconSize={8} wrapperStyle={{ fontSize: '11px', color: '#a1a1aa' }} />
-                <Bar dataKey="Pago" fill="#fafafa" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Devido" fill="#52525b" radius={[4, 4, 0, 0]} />
+                <Legend iconSize={8} wrapperStyle={{ fontSize: '11px', color: 'var(--color-zinc-400)' }} />
+                <Bar dataKey="Pago" fill="var(--accent)" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="Devido" fill="var(--color-amber-400)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         )}
       </div>
 
-      {/* Chart 4: Evolução Mensal */}
-      <div className=" bg-zinc-950 p-6 rounded-xl border border-zinc-800 flex flex-col">
-        <h3 className="font-bold text-white text-base mb-4">
+      {/* Chart 3: Evolução Mensal */}
+      <div className="bg-zinc-900/40 p-5 sm:p-6 rounded-2xl border border-zinc-800/80 flex flex-col shadow-sm md:col-span-2">
+        <h3 className="font-semibold text-zinc-50 text-base mb-4 tracking-tight">
           Gastos por Mês
         </h3>
         {monthData.length === 0 ? (
-          <p className="text-xs text-zinc-500 my-auto text-center py-10">
+          <p className="text-xs text-zinc-400 my-auto text-center py-10">
             Nenhum dado mensal registrado.
           </p>
+        ) : isMobile ? (
+          <BarList rows={monthData.map((m) => ({ label: m.month, value: m.total, color: 'var(--accent)' }))} />
         ) : (
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <XAxis dataKey="month" tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} />
+              <AreaChart data={monthData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <XAxis dataKey="month" tick={AXIS_TICK} axisLine={false} tickLine={false} />
                 <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
-                <Tooltip {...TOOLTIP_PROPS} formatter={(value: unknown) => [formatBRL(Number(value) || 0), 'Total Gasto']} />
-                <Bar dataKey="total" fill="#a1a1aa" radius={[6, 6, 0, 0]} />
-              </BarChart>
+                <Tooltip
+                  {...TOOLTIP_PROPS}
+                  cursor={{ stroke: 'var(--color-zinc-700)' }}
+                  formatter={(value: unknown) => [formatBRL(Number(value) || 0), 'Total gasto']}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="total"
+                  stroke="var(--accent)"
+                  strokeWidth={2}
+                  fill="var(--accent)"
+                  fillOpacity={0.15}
+                  activeDot={{ r: 4, fill: 'var(--accent)', stroke: 'var(--color-zinc-950)' }}
+                />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         )}

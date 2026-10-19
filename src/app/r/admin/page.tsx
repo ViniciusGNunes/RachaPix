@@ -8,24 +8,51 @@ import {
   ApiError,
   SplitAdminDto,
 } from '@/lib/api';
-import { formatBRL, formatDateTime } from '@/lib/formatters';
+import { formatDateTime } from '@/lib/formatters';
 import { getSavedSplitToken, removeSavedSplit, saveSplit } from '@/lib/storage';
 import { absoluteUrl, splitAdminPath, splitPath } from '@/lib/routes';
 import { CopyButton } from '@/components/ui/CopyButton';
-import { Badge } from '@/components/ui/Badge';
+import { Money } from '@/components/ui/Money';
+import { StatusPill, PaidProgress } from '@/components/splits/PixQrModal';
 import { Modal } from '@/components/ui/Modal';
-import {
-  Shield,
-  CheckCircle2,
-  Clock,
-  Trash2,
-  ExternalLink,
-  Users,
-  RefreshCw,
-  AlertCircle,
-  KeyRound,
-  RotateCcw,
-} from 'lucide-react';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { toast } from '@/components/ui/Toast';
+
+function AdminSkeleton() {
+  return (
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-24 md:pb-12 w-full space-y-6" aria-busy="true">
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 shadow-sm">
+        <Skeleton className="h-8 w-2/3 rounded-lg" />
+        <Skeleton className="h-4 w-1/2 rounded-md" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <Skeleton className="h-16 rounded-xl" />
+          <Skeleton className="h-16 rounded-xl" />
+          <Skeleton className="h-16 rounded-xl" />
+        </div>
+        <Skeleton className="h-2 w-full rounded-full" />
+      </div>
+      <div className="space-y-3">
+        <Skeleton className="h-6 w-36 rounded-lg" />
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 overflow-hidden divide-y divide-zinc-800/60 shadow-sm">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-4 w-28 rounded-md" />
+                    <Skeleton className="h-3 w-20 rounded-md" />
+                  </div>
+                </div>
+                <Skeleton className="h-6 w-20 rounded-md" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function SplitAdminContent() {
   const router = useRouter();
@@ -129,6 +156,7 @@ function SplitAdminContent() {
     } catch (err: unknown) {
       const msg = err instanceof ApiError ? err.message : 'Falha ao rejeitar pagamento.';
       setActionError(msg);
+      toast.error(msg);
     } finally {
       setTogglingId(null);
     }
@@ -144,6 +172,7 @@ function SplitAdminContent() {
     } catch (err: unknown) {
       const msg = err instanceof ApiError ? err.message : 'Falha ao alterar status.';
       setActionError(msg);
+      toast.error(msg);
     } finally {
       setTogglingId(null);
     }
@@ -160,6 +189,7 @@ function SplitAdminContent() {
     } catch (err: unknown) {
       const msg = err instanceof ApiError ? err.message : 'Falha ao excluir o racha.';
       setActionError(msg);
+      toast.error(msg);
       setIsDeleting(false);
     }
   };
@@ -169,43 +199,44 @@ function SplitAdminContent() {
   // If no token provided yet
   if (!token && !loading) {
     return (
-      <div className="max-w-md mx-auto px-4 py-20">
-        <div className=" bg-zinc-950 rounded-xl p-8 border border-zinc-800 text-center space-y-6">
-          <div className="w-16 h-16 rounded-xl bg-amber-950/60 text-amber-400 flex items-center justify-center mx-auto">
-            <KeyRound className="w-8 h-8" />
-          </div>
+      <div className="max-w-md mx-auto px-4 py-16 sm:py-24 animate-fade-up">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 sm:p-8 space-y-6 shadow-sm backdrop-blur-sm">
           <div>
-            <h1 className="text-2xl font-bold text-white">
-              Acesso ao Painel Admin
-            </h1>
-            <p className="text-xs text-zinc-400 mt-2">
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-50">Painel do organizador</h1>
+            <p className="text-sm text-zinc-400 mt-2">
               Informe a chave secreta gerada na criação do racha &quot;{slug}&quot;.
             </p>
           </div>
 
           <form onSubmit={handleApplyToken} className="space-y-4">
-            <input
-              type="text"
-              required
-              placeholder="Cole o token de administrador aqui"
-              value={inputToken}
-              onChange={(e) => setInputToken(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900 text-white text-sm font-mono focus:ring-2 focus:ring-zinc-600 focus:outline-none"
-            />
+            <div className="space-y-1.5">
+              <label htmlFor="token-input" className="text-xs font-medium text-zinc-400">
+                Token de administrador
+              </label>
+              <input
+                id="token-input"
+                type="text"
+                required
+                placeholder="Cole o token de administrador"
+                value={inputToken}
+                onChange={(e) => setInputToken(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-50 text-sm font-mono focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none placeholder:text-zinc-500"
+              />
+            </div>
             <button
               type="submit"
-              className="w-full py-3 px-4 rounded-xl bg-zinc-50 hover:bg-zinc-200 text-zinc-950 font-bold text-sm transition-colors cursor-pointer"
+              className="w-full h-12 px-4 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-base transition active:scale-[0.98] cursor-pointer shadow-sm"
             >
-              Acessar Painel
+              Acessar
             </button>
           </form>
 
-          <div className="pt-2">
+          <div className="pt-2 border-t border-zinc-800/60 text-center">
             <Link
               href={splitPath(slug)}
-              className="text-xs text-zinc-400 hover:text-zinc-300"
+              className="inline-flex items-center justify-center text-sm font-medium text-zinc-400 hover:text-zinc-200 transition min-h-11"
             >
-              &larr; Voltar para a página pública de pagamento
+              Voltar para a página pública
             </Link>
           </div>
         </div>
@@ -214,33 +245,30 @@ function SplitAdminContent() {
   }
 
   if (loading && !split) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center py-24">
-        <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin mb-3" />
-        <p className="text-zinc-400 text-sm">Carregando painel do administrador...</p>
-      </div>
-    );
+    return <AdminSkeleton />;
   }
 
   if (error || !split) {
     return (
-      <div className="max-w-md mx-auto px-4 py-20 text-center">
-        <div className="w-14 h-14 bg-rose-950/60 text-rose-400 rounded-xl flex items-center justify-center mx-auto mb-4">
-          <AlertCircle className="w-7 h-7" />
+      <div className="max-w-md mx-auto px-4 py-20 text-center animate-fade-up">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-8 space-y-4 shadow-sm backdrop-blur-sm">
+          <h1 className="text-xl font-bold text-zinc-50">
+            Erro de autenticação
+          </h1>
+          <p className="text-zinc-400 text-sm">{error}</p>
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setToken('');
+                setError(null);
+              }}
+              className="px-5 min-h-11 border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-100 rounded-xl text-sm font-medium transition active:scale-[0.98] cursor-pointer"
+            >
+              Inserir outro token
+            </button>
+          </div>
         </div>
-        <h1 className="text-xl font-bold text-white mb-2">
-          Erro de Autenticação
-        </h1>
-        <p className="text-zinc-400 text-sm mb-6">{error}</p>
-        <button
-          onClick={() => {
-            setToken('');
-            setError(null);
-          }}
-          className="px-4 py-2 bg-zinc-50 text-zinc-950 rounded-xl text-sm font-semibold hover:bg-zinc-100"
-        >
-          Inserir outro token
-        </button>
       </div>
     );
   }
@@ -250,229 +278,172 @@ function SplitAdminContent() {
       ? Math.min(100, Math.round((split.paidAmount / split.totalAmount) * 100))
       : 0;
 
+  const isOverdue =
+    new Date().getTime() - new Date(split.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000;
+
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 w-full space-y-6">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-24 md:pb-12 w-full space-y-6 animate-fade-up">
       {actionError && !deleteModalOpen && (
-        <div className=" bg-rose-950/40 border border-rose-800 text-rose-300 p-4 rounded-xl text-sm flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 shrink-0 text-rose-400" />
-            <span>{actionError}</span>
-          </div>
+        <div role="alert" className="border border-rose-800/80 bg-rose-950/20 text-rose-300 p-4 rounded-xl text-sm flex items-start justify-between gap-3 animate-fade-in">
+          <span>{actionError}</span>
           <button
             type="button"
             onClick={() => setActionError(null)}
-            className="text-xs font-semibold hover:underline cursor-pointer"
+            className="text-sm font-medium hover:underline cursor-pointer min-h-11 px-2"
           >
             Fechar
           </button>
         </div>
       )}
 
-      {/* Top Admin Banner */}
-      <div className=" bg-zinc-950 rounded-xl p-6 sm:p-7 border border-zinc-800 space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-400 bg-amber-950/60 px-2.5 py-0.5 rounded-full border border-amber-800">
-                <Shield className="w-3.5 h-3.5" /> Painel do Organizador
-              </span>
-              {refreshing && (
-                <span className="text-xs text-zinc-500 flex items-center gap-1 animate-pulse">
-                  <RefreshCw className="w-3 h-3 animate-spin" /> Atualizando...
-                </span>
-              )}
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl font-semibold text-white mt-2">
+      <header className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6 space-y-5 shadow-sm backdrop-blur-sm">
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-50 break-words">
               {split.title}
             </h1>
-            <p className="text-xs text-zinc-500 mt-1">
-              Pix de: <strong className=" text-zinc-300">{split.receiverName}</strong> ({split.receiverCity}) &bull; Chave ({split.pixKeyType}): <span className="font-mono text-zinc-300">{split.pixKey}</span>
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Link
-              href={splitPath(slug)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-800 text-xs font-semibold text-zinc-300 hover:bg-zinc-900 transition-colors"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Ver Página Pública
-            </Link>
-            <button
-              type="button"
-              onClick={() => setDeleteModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-rose-900/60 text-xs font-semibold text-rose-400 hover:bg-rose-950/50 transition-colors cursor-pointer"
-            >
-              <Trash2 className="w-4 h-4" />
-              Excluir Racha
-            </button>
-          </div>
-        </div>
-
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-          <div className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
-            <span className="text-xs text-zinc-500 font-medium uppercase">Total</span>
-            <p className="text-xl font-bold text-white mt-0.5">
-              {formatBRL(split.totalAmount)}
-            </p>
-          </div>
-          <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-800">
-            <span className="text-xs text-emerald-400 font-medium uppercase">Recebido</span>
-            <p className="text-xl font-bold text-emerald-300 mt-0.5">
-              {formatBRL(split.paidAmount)}
-            </p>
-          </div>
-          <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800">
-            <span className="text-xs text-amber-400 font-medium uppercase">Pendente</span>
-            <p className="text-xl font-bold text-amber-300 mt-0.5">
-              {formatBRL(split.totalAmount - split.paidAmount)}
-            </p>
-          </div>
-          <div className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
-            <span className="text-xs text-zinc-500 font-medium uppercase">Participantes</span>
-            <p className="text-xl font-bold text-white mt-0.5">
-              {split.paidCount} / {split.participants.length} pagos
-            </p>
-            {split.pendingCount > 0 && (
-              <span className="text-xs font-medium text-blue-400">
-                {split.pendingCount} aguardando confirmação
+            {refreshing && (
+              <span className="inline-flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                Atualizando...
               </span>
             )}
           </div>
-        </div>
-
-        {/* Progress bar */}
-        <div className="space-y-1.5 pt-1">
-          <div className="w-full bg-zinc-900 h-3 rounded-full overflow-hidden">
-            <div
-              className="bg-zinc-50 h-full rounded-full transition-all duration-500"
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
-          <p className="text-right text-xs font-semibold text-zinc-500">
-            Progresso: {progressPct}% concluído (atualiza automaticamente a cada 10s)
+          <p className="text-sm text-zinc-400">
+            Pix de <span className="font-medium text-zinc-200">{split.receiverName}</span> ({split.receiverCity}) &middot; {split.pixKeyType}:{' '}
+            <span className="font-mono text-xs px-2 py-0.5 rounded bg-zinc-800/80 text-zinc-300 break-all">{split.pixKey}</span>
           </p>
         </div>
 
-        {/* Share box */}
-        <div className="p-3.5 rounded-xl bg-zinc-900/60 border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs font-semibold text-zinc-300">
-              Link de compartilhamento para o grupo:
-            </span>
-            <span className="text-xs font-mono text-zinc-400 truncate max-w-xs">{publicUrl}</span>
+        {/* Financial overview stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="p-3.5 rounded-xl border border-zinc-800/80 bg-zinc-900/60">
+            <p className="text-xs text-zinc-400 font-medium">Total</p>
+            <Money value={split.totalAmount} className="text-lg font-bold text-zinc-100 mt-0.5" />
           </div>
-          <CopyButton text={publicUrl} label="Copiar Link" variant="primary" size="sm" />
+          <div className="p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+            <p className="text-xs text-emerald-400 font-medium">Recebido</p>
+            <Money value={split.paidAmount} className="text-lg font-bold text-emerald-400 mt-0.5" />
+          </div>
+          <div className="p-3.5 rounded-xl border border-amber-500/20 bg-amber-500/5">
+            <p className="text-xs text-amber-400 font-medium">Falta receber</p>
+            <Money value={Math.max(0, split.totalAmount - split.paidAmount)} className="text-lg font-bold text-amber-400 mt-0.5" />
+          </div>
         </div>
-      </div>
 
-      {/* Participants Table */}
-      <div className=" bg-zinc-950 rounded-xl p-6 sm:p-7 border border-zinc-800 space-y-4">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <Users className="w-5 h-5 text-emerald-400" />
-          Status dos Pagamentos ({split.participants.length})
-        </h2>
+        <div className="space-y-2">
+          <PaidProgress paid={split.paidCount} total={split.participants.length} pct={progressPct} />
+          {split.pendingCount > 0 && (
+            <p className="text-xs sm:text-sm text-amber-400 font-medium flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              {split.pendingCount} aguardando confirmação
+            </p>
+          )}
+        </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-zinc-800 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                <th className="py-3 px-3">Participante</th>
-                <th className="py-3 px-3">Valor</th>
-                <th className="py-3 px-3">Status</th>
-                <th className="py-3 px-3 hidden sm:table-cell">Pago em</th>
-                <th className="py-3 px-3 text-right">Ação</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-800">
-              {split.participants.map((p) => (
-                <tr key={p.id} className=" hover:bg-zinc-900/30">
-                  <td className="py-3.5 px-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-white">
-                        {p.name}
-                      </span>
-                      {p.isOwner && (
-                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-zinc-900 text-zinc-400">
-                          Organizador
-                        </span>
-                      )}
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-zinc-800/60">
+          <CopyButton text={publicUrl} label="Copiar link do grupo" variant="primary" size="sm" />
+          <Link
+            href={splitPath(slug)}
+            className="inline-flex items-center px-3.5 min-h-11 rounded-xl border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-sm font-medium text-zinc-300 transition active:scale-[0.98]"
+          >
+            Ver página pública
+          </Link>
+          <button
+            type="button"
+            onClick={() => setDeleteModalOpen(true)}
+            className="ml-auto inline-flex items-center px-3 min-h-11 text-xs sm:text-sm font-medium text-rose-400 hover:text-rose-300 hover:underline cursor-pointer"
+          >
+            Excluir racha
+          </button>
+        </div>
+      </header>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-base sm:text-lg font-semibold text-zinc-50">
+            Participantes ({split.participants.length})
+          </h2>
+        </div>
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 divide-y divide-zinc-800/60 overflow-hidden shadow-sm backdrop-blur-sm">
+          {split.participants.map((p) => {
+            const initial = p.name.trim().charAt(0).toUpperCase();
+            return (
+              <div key={p.id} className="p-3.5 sm:p-4 space-y-3 hover:bg-zinc-800/20 transition-colors">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div
+                      className="w-10 h-10 rounded-full bg-zinc-800/80 border border-zinc-700/60 flex items-center justify-center text-xs font-semibold text-zinc-200 shrink-0 select-none mt-0.5"
+                      aria-hidden="true"
+                    >
+                      {initial}
                     </div>
-                  </td>
-                  <td className="py-3.5 px-3 font-bold text-white">
-                    {formatBRL(p.amount)}
-                  </td>
-                  <td className="py-3.5 px-3">
-                    {p.paid ? (
-                      <Badge variant="emerald" size="sm">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Pago
-                      </Badge>
-                    ) : p.paymentPending ? (
-                      <Badge variant="blue" size="sm">
-                        <Clock className="w-3.5 h-3.5" /> Aguardando confirmação
-                      </Badge>
-                    ) : (
-                      <Badge variant="amber" size="sm">
-                        <Clock className="w-3.5 h-3.5" /> Pendente
-                      </Badge>
-                    )}
-                  </td>
-                  <td className="py-3.5 px-3 text-xs text-zinc-500 hidden sm:table-cell">
-                    {p.paidAt
-                      ? formatDateTime(p.paidAt)
-                      : p.claimedAt
-                        ? `Informado em ${formatDateTime(p.claimedAt)}`
-                        : '—'}
-                  </td>
-                  <td className="py-3.5 px-3 text-right">
-                    {p.isOwner ? (
-                      <span className="text-xs text-zinc-500 font-medium italic">
-                        Organizador (Quitado)
-                      </span>
-                    ) : (
-                      <div className="inline-flex items-center gap-2">
-                      {p.paymentPending && (
-                        <button
-                          type="button"
-                          disabled={togglingId === p.id}
-                          onClick={() => handleRejectClaim(p.id)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-zinc-800 text-zinc-400 hover:bg-zinc-900 transition-colors cursor-pointer disabled:opacity-50"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" /> Rejeitar
-                        </button>
-                      )}
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-zinc-100 break-words flex items-center gap-1.5 flex-wrap">
+                        <span>{p.name}</span>
+                        {p.isOwner && (
+                          <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-zinc-800 text-zinc-400">
+                            organizador
+                          </span>
+                        )}
+                      </p>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                        {p.paid ? (
+                          <StatusPill status="paid" />
+                        ) : p.paymentPending ? (
+                          <StatusPill status="pending" label="Aguardando confirmação" />
+                        ) : isOverdue ? (
+                          <StatusPill status="overdue" />
+                        ) : (
+                          <StatusPill status="pending" />
+                        )}
+                        <span className="text-xs text-zinc-500">
+                          {p.paidAt
+                            ? formatDateTime(p.paidAt)
+                            : p.claimedAt
+                              ? `Informado em ${formatDateTime(p.claimedAt)}`
+                              : ''}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <Money
+                    value={p.amount}
+                    className={`text-base font-semibold tabular-nums text-right shrink-0 ${p.paid ? 'text-emerald-400' : 'text-zinc-50'}`}
+                  />
+                </div>
+
+                {!p.isOwner && (
+                  <div className="flex items-center justify-end gap-2 pt-1 border-t border-zinc-800/40">
+                    {p.paymentPending && (
                       <button
                         type="button"
                         disabled={togglingId === p.id}
-                        onClick={() => handleTogglePaid(p.id)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 ${
-                          p.paid
-                            ? 'border border-zinc-800 text-zinc-400 hover:bg-zinc-900'
-                            : 'bg-zinc-50 text-zinc-950 hover:bg-zinc-200'
-                        }`}
+                        onClick={() => handleRejectClaim(p.id)}
+                        className="px-3.5 min-h-11 rounded-xl text-xs sm:text-sm font-medium border border-rose-800/50 hover:border-rose-700 bg-rose-950/20 hover:bg-rose-950/40 text-rose-300 transition active:scale-[0.98] cursor-pointer disabled:opacity-50"
                       >
-                        {p.paid ? (
-                          <>
-                            <RotateCcw className="w-3.5 h-3.5" /> Reverter
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Confirmar
-                          </>
-                        )}
+                        Rejeitar
                       </button>
-                      </div>
                     )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <button
+                      type="button"
+                      disabled={togglingId === p.id}
+                      onClick={() => handleTogglePaid(p.id)}
+                      className={`px-3.5 min-h-11 rounded-xl text-xs sm:text-sm font-semibold transition active:scale-[0.98] cursor-pointer disabled:opacity-50 ${
+                        p.paid
+                          ? 'border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-300'
+                          : 'bg-accent hover:bg-accent-hover text-accent-fg shadow-sm'
+                      }`}
+                    >
+                      {p.paid ? 'Reverter' : 'Marcar como pago'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-      </div>
+      </section>
 
       {/* Delete Confirmation Modal */}
       <Modal
@@ -486,23 +457,20 @@ function SplitAdminContent() {
       >
         <div className="space-y-4">
           {actionError && (
-            <div className="p-3.5 rounded-xl bg-rose-950/50 border border-rose-800 text-rose-200 text-xs flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
-              <span>{actionError}</span>
-            </div>
+            <p role="alert" className="text-sm text-rose-300">{actionError}</p>
           )}
 
           <p className="text-sm text-zinc-400">
             Tem certeza que deseja excluir &quot;{split.title}&quot;? Esta ação removerá os links públicos e não pode ser desfeita.
           </p>
-          <div className="flex items-center justify-end gap-3 pt-3">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-3">
             <button
               type="button"
               onClick={() => {
                 setDeleteModalOpen(false);
                 setActionError(null);
               }}
-              className="px-4 py-2 text-sm font-semibold text-zinc-300 hover:bg-zinc-900 rounded-xl cursor-pointer"
+              className="px-4 h-11 text-sm font-semibold text-zinc-300 hover:bg-zinc-900 rounded-xl cursor-pointer transition active:scale-[0.98]"
             >
               Cancelar
             </button>
@@ -510,9 +478,9 @@ function SplitAdminContent() {
               type="button"
               disabled={isDeleting}
               onClick={handleDeleteSplit}
-              className="px-4 py-2 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+              className="px-4 h-11 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition active:scale-[0.98] cursor-pointer disabled:opacity-50 shadow-sm"
             >
-              {isDeleting ? 'Excluindo...' : 'Sim, excluir definitivamente'}
+              {isDeleting ? 'Excluindo...' : 'Excluir'}
             </button>
           </div>
         </div>
@@ -523,14 +491,7 @@ function SplitAdminContent() {
 
 export default function SplitAdminPage() {
   return (
-    <React.Suspense
-      fallback={
-        <div className="py-24 flex flex-col items-center justify-center">
-          <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin mb-3" />
-          <p className="text-zinc-400 text-sm">Carregando painel administrativo...</p>
-        </div>
-      }
-    >
+    <React.Suspense fallback={<AdminSkeleton />}>
       <SplitAdminContent />
     </React.Suspense>
   );

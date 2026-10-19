@@ -27,10 +27,10 @@ interface Position {
 }
 
 const VIEWPORT_MARGIN = 8;
-const MAX_LIST_HEIGHT = 256;
-const OPTION_BASE = 'flex items-center justify-between gap-2 cursor-pointer select-none text-zinc-300';
+const MAX_LIST_HEIGHT = 260;
+const OPTION_BASE = 'flex items-center justify-between gap-2 cursor-pointer select-none text-zinc-300 rounded-lg mx-1 my-0.5 transition-colors';
 const optionClass = (mobile: boolean) =>
-  `${OPTION_BASE} ${mobile ? 'px-4 py-3.5 text-base' : 'px-3 py-2 text-sm'}`;
+  `${OPTION_BASE} ${mobile ? 'px-4 py-3 text-base' : 'px-3 py-2 text-sm'}`;
 
 function usePopoverPosition(open: boolean, anchorRef: React.RefObject<HTMLElement | null>): Position | null {
   const [position, setPosition] = useState<Position | null>(null);
@@ -41,19 +41,31 @@ function usePopoverPosition(open: boolean, anchorRef: React.RefObject<HTMLElemen
     const rect = el.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom - VIEWPORT_MARGIN;
     const spaceAbove = rect.top - VIEWPORT_MARGIN;
-    const placeAbove = spaceBelow < 160 && spaceAbove > spaceBelow;
-    const available = placeAbove ? spaceAbove : spaceBelow;
+    const placeAbove =
+      (spaceBelow < MAX_LIST_HEIGHT && spaceAbove > spaceBelow) ||
+      (spaceBelow < 120 && spaceAbove > spaceBelow);
+    const available = Math.max(0, (placeAbove ? spaceAbove : spaceBelow) - 4);
+    const maxHeight = Math.min(MAX_LIST_HEIGHT, available);
+
+    // Keep popover horizontally within viewport bounds
+    const estimatedWidth = Math.max(rect.width, 200);
+    const maxLeft = Math.max(VIEWPORT_MARGIN, window.innerWidth - estimatedWidth - VIEWPORT_MARGIN);
+    const left = Math.max(VIEWPORT_MARGIN, Math.min(rect.left, maxLeft));
+
     setPosition({
       top: placeAbove ? rect.top - 4 : rect.bottom + 4,
-      left: rect.left,
+      left,
       width: rect.width,
-      maxHeight: Math.max(120, Math.min(MAX_LIST_HEIGHT, available - 4)),
+      maxHeight,
       placeAbove,
     });
   }, [anchorRef]);
 
   useLayoutEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setPosition(null);
+      return;
+    }
     update();
     window.addEventListener('resize', update);
     window.addEventListener('scroll', update, true);
@@ -73,13 +85,17 @@ function useOutsideClose(
 ) {
   useEffect(() => {
     if (!open) return;
-    const handler = (e: MouseEvent) => {
+    const handler = (e: MouseEvent | TouchEvent) => {
       const target = e.target as Node;
       if (refs.some((r) => r.current?.contains(target))) return;
       onClose();
     };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, onClose]);
 }
@@ -94,7 +110,7 @@ function Popover({
   onClose,
   children,
 }: {
-  position: Position;
+  position?: Position | null;
   listRef: React.RefObject<HTMLUListElement | null>;
   sheetRef?: React.RefObject<HTMLDivElement | null>;
   id: string;
@@ -112,28 +128,56 @@ function Popover({
     };
   }, [mobileSheet]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose?.();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  if (typeof document === 'undefined') return null;
+
   if (mobileSheet) {
     return createPortal(
-      <div className="fixed inset-0 z-[100] flex items-end bg-black/60 animate-in fade-in duration-150">
+      <div
+        className="fixed inset-0 z-[100] flex items-end bg-black/60 backdrop-blur-xs animate-fade-in cursor-pointer"
+        onClick={onClose}
+        role="presentation"
+      >
         <div
           ref={sheetRef}
-          className="w-full rounded-t-2xl border-t border-zinc-800 bg-zinc-950 pb-[env(safe-area-inset-bottom)] shadow-2xl shadow-black animate-in slide-in-from-bottom duration-200"
+          className="w-full max-h-[70dvh] flex flex-col rounded-t-2xl border-t border-zinc-800 bg-zinc-950 pb-[env(safe-area-inset-bottom)] shadow-2xl animate-sheet-up cursor-default"
+          onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex justify-center pt-2.5" aria-hidden="true">
-            <span className="h-1 w-10 rounded-full bg-zinc-700" />
+          {/* Drag handle */}
+          <div className="flex justify-center pt-2.5 shrink-0" aria-hidden="true">
+            <span className="h-1.5 w-12 rounded-full bg-zinc-700/80" />
           </div>
-          <div className="flex items-center justify-between px-4 pt-2 pb-1">
-            <span className="text-sm font-semibold text-zinc-300">{title}</span>
+
+          {/* Sheet Header */}
+          <div className="flex items-center justify-between px-4 pt-2 pb-2 shrink-0 border-b border-zinc-800/60">
+            <span className="text-sm font-semibold text-zinc-200">{title}</span>
             <button
               type="button"
               onClick={onClose}
               aria-label="Fechar"
-              className="p-2 -mr-2 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900"
+              className="p-1.5 -mr-1.5 rounded-xl text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
-          <ul ref={listRef} id={id} role="listbox" className="max-h-[60vh] overflow-y-auto py-1">
+
+          {/* Scrollable Options List */}
+          <ul
+            ref={listRef}
+            id={id}
+            role="listbox"
+            aria-label={title}
+            className="flex-1 min-h-0 overflow-y-auto overscroll-contain py-1.5 px-1 pb-3"
+          >
             {children}
           </ul>
         </div>
@@ -142,23 +186,26 @@ function Popover({
     );
   }
 
+  if (!position) return null;
+
   return createPortal(
     <ul
       ref={listRef}
       id={id}
       role="listbox"
+      aria-label={title}
       style={{
         position: 'fixed',
         left: position.left,
         minWidth: position.width,
         width: 'max-content',
-        maxWidth: 'min(20rem, calc(100vw - 16px))',
+        maxWidth: `min(20rem, calc(100vw - ${VIEWPORT_MARGIN * 2}px))`,
         maxHeight: position.maxHeight,
         ...(position.placeAbove
           ? { bottom: window.innerHeight - position.top }
           : { top: position.top }),
       }}
-      className="z-[100] overflow-y-auto py-1 rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-black/60 animate-in fade-in duration-100"
+      className="z-[100] overflow-y-auto py-1.5 px-1 rounded-xl border border-zinc-800 bg-zinc-900/95 backdrop-blur-md shadow-xl animate-fade-in"
     >
       {children}
     </ul>,
@@ -289,20 +336,20 @@ export function Select({
         disabled={disabled}
         onClick={() => (open ? setOpen(false) : openList())}
         onKeyDown={handleKeyDown}
-        className={`w-full flex items-center justify-between gap-2 border bg-zinc-900 text-left text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer max-sm:min-h-11 ${
-          open ? 'border-zinc-600' : 'border-zinc-800 hover:border-zinc-700'
+        className={`w-full flex items-center justify-between gap-2 border bg-zinc-900 text-left text-zinc-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer max-sm:min-h-11 ${
+          open ? 'border-accent' : 'border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/90'
         } ${triggerClassName || 'px-3.5 py-2.5 text-sm rounded-xl'}`}
       >
-        <span className={`truncate ${selected ? '' : 'text-zinc-500'}`}>
+        <span className={`truncate ${selected ? '' : 'text-zinc-400'}`}>
           {selected ? selected.label : (placeholder ?? 'Selecione')}
         </span>
         <ChevronDown
-          className={`w-4 h-4 shrink-0 text-zinc-500 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 shrink-0 text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`}
           aria-hidden="true"
         />
       </button>
 
-      {open && position && (
+      {open && (isMobile || position) && (
         <Popover
           position={position}
           listRef={listRef}
@@ -325,12 +372,12 @@ export function Select({
                 onMouseEnter={() => setActiveIndex(index)}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => commit(index)}
-                className={`${optionClass(isMobile)} ${isActive ? 'bg-zinc-900 text-white' : ''} ${
-                  isSelected ? 'font-medium text-white' : ''
+                className={`${optionClass(isMobile)} ${isActive ? 'bg-zinc-800 text-zinc-50' : ''} ${
+                  isSelected ? 'font-medium text-accent bg-accent-muted/40' : ''
                 }`}
               >
                 <span className="truncate">{option.label}</span>
-                {isSelected && <Check className="w-4 h-4 shrink-0 text-zinc-300" aria-hidden="true" />}
+                {isSelected && <Check className="w-4 h-4 shrink-0 text-accent" aria-hidden="true" />}
               </li>
             );
           })}
@@ -453,13 +500,13 @@ export function Combobox({
         }}
         onFocus={() => setOpen(true)}
         onKeyDown={handleKeyDown}
-        className={`w-full min-w-0 border border-zinc-800 bg-zinc-900 text-white placeholder:text-zinc-600 transition-colors hover:border-zinc-700 focus:border-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 max-sm:min-h-11 max-sm:text-base ${
+        className={`w-full min-w-0 border border-zinc-800 bg-zinc-900 text-zinc-50 placeholder:text-zinc-500 transition-all hover:border-zinc-700 focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent max-sm:min-h-11 max-sm:text-base ${
           inputClassName || 'px-3.5 py-2.5 text-sm rounded-xl'
         }`}
       />
 
       {showList && (
-        <Popover position={position} listRef={listRef} id={listId}>
+        <Popover position={position} listRef={listRef} id={listId} title={ariaLabel} onClose={close}>
           {filtered.map((item, index) => (
             <li
               key={item}
@@ -470,7 +517,7 @@ export function Combobox({
               onMouseEnter={() => setActiveIndex(index)}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => commit(index)}
-              className={`${optionClass(isMobile)} ${index === activeIndex ? 'bg-zinc-900 text-white' : ''}`}
+              className={`${optionClass(isMobile)} ${index === activeIndex ? 'bg-zinc-800 text-zinc-50' : ''}`}
             >
               <span className="truncate">{item}</span>
             </li>

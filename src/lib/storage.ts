@@ -67,6 +67,9 @@ export interface SavedGroup {
   name?: string;
   accessToken?: string;
   adminToken?: string;
+  /** Personal token from picking who you are in the group; carries your member identity. */
+  memberToken?: string;
+  memberId?: string;
 }
 
 export function getSavedGroups(): SavedGroup[] {
@@ -95,11 +98,26 @@ export function saveGroup(group: SavedGroup): void {
       name: group.name ?? existing?.name,
       accessToken: group.accessToken ?? existing?.accessToken,
       adminToken: group.adminToken ?? existing?.adminToken,
+      memberToken: group.memberToken ?? existing?.memberToken,
+      memberId: group.memberId ?? existing?.memberId,
     };
     const rest = list.filter((g) => g.id !== group.id);
     localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify([merged, ...rest].slice(0, 100)));
   } catch (err) {
     console.error('Failed to save group to localStorage:', err);
+  }
+}
+
+/** Drops the personal token (e.g. the admin freed this member), keeping invite/admin tokens. */
+export function forgetMemberIdentity(id: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const list = getSavedGroups().map((g) =>
+      g.id === id ? { ...g, memberToken: undefined, memberId: undefined } : g
+    );
+    localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(list));
+  } catch (err) {
+    console.error('Failed to update group in localStorage:', err);
   }
 }
 
