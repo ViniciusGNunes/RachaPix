@@ -40,6 +40,8 @@ import { toast } from '@/components/ui/Toast';
 import { useTermsAccepted, TermsConsentCheckbox, TermsShortNotice } from '@/components/TermsConsent';
 import { IdentityPicker } from '@/components/despesas/IdentityPicker';
 import { InvitePanel } from '@/components/despesas/InvitePanel';
+import { DevicesPanel } from '@/components/despesas/DevicesPanel';
+import { describeThisDevice } from '@/lib/device';
 import {
   Plus,
   Trash2,
@@ -450,9 +452,30 @@ function GroupDetailContent() {
       return;
     }
     let cancelled = false;
+    async function redeemDeviceLink(code: string) {
+      if (getGroupCredentials(groupId)?.memberToken) {
+        toast.info('Este aparelho já está conectado a este grupo.');
+        return;
+      }
+      try {
+        const res = await api.redeemLinkCode(groupId, code, describeThisDevice());
+        saveGroup({ id: groupId, memberToken: res.memberToken, memberId: res.member.id });
+        toast.success(`Aparelho conectado como ${res.member.name}.`);
+      } catch (err: unknown) {
+        toast.error(err instanceof ApiError ? err.message : 'Não foi possível conectar este aparelho.');
+      }
+    }
+
     async function init() {
-      const hashToken = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('t');
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      const hashToken = hashParams.get('t');
+      const linkCode = hashParams.get('link');
       if (hashToken) saveGroup({ id: groupId, accessToken: hashToken });
+      if (linkCode) {
+        // Single-use code from "Conectar outro aparelho": trade it for this device's own token.
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        await redeemDeviceLink(linkCode);
+      }
       setLoading(true);
       setError(null);
       await loadGroup();
@@ -479,7 +502,7 @@ function GroupDetailContent() {
   // Handler for Claiming Identity
   const handleClaim = async (req: { memberId?: string; newName?: string }) => {
     try {
-      const res = await api.claimMember(groupId, req);
+      const res = await api.claimMember(groupId, { ...req, label: describeThisDevice() });
       saveGroup({
         id: groupId,
         memberToken: res.memberToken,
@@ -1711,6 +1734,13 @@ function GroupDetailContent() {
               </button>
             )}
           </div>
+
+          {me && (
+            <DevicesPanel
+              groupId={group.id}
+              inviteToken={group.accessToken ?? getGroupCredentials(group.id)?.accessToken}
+            />
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {group.members.map((m) => {

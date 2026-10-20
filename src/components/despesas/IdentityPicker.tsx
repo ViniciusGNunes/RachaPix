@@ -95,6 +95,11 @@ export function IdentityPicker({ groupName, members, onClaim }: Readonly<Identit
           </form>
         </div>
 
+        <p className="mt-5 text-xs text-zinc-500 leading-relaxed">
+          Já escolheu seu nome em outro aparelho? Abra o grupo lá, vá em Membros e use{' '}
+          <span className="text-zinc-300">Conectar outro aparelho</span>.
+        </p>
+
         {error && (
           <p role="alert" className="mt-4 text-sm text-red-400">
             {error}
