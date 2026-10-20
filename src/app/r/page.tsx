@@ -10,22 +10,53 @@ import {
   SplitParticipantPublicDto,
   SplitPublicDto,
 } from '@/lib/api';
-import { formatBRL, formatDate } from '@/lib/formatters';
+import { formatBRL, formatDate, isOverdueSince } from '@/lib/formatters';
+import { Money } from '@/components/ui/Money';
 import { getSavedSplitToken } from '@/lib/storage';
 import { splitAdminPath } from '@/lib/routes';
-import { PixQrModal } from '@/components/splits/PixQrModal';
-import { CopyButton } from '@/components/ui/CopyButton';
-import { Badge } from '@/components/ui/Badge';
 import {
-  CheckCircle2,
-  Clock,
-  User,
-  Shield,
-  QrCode,
-  Share2,
-  AlertCircle,
-  RefreshCw,
-} from 'lucide-react';
+  PixQrModal,
+  ParticipantStatusPill,
+  PaidProgress,
+} from '@/components/splits/PixQrModal';
+import { CopyButton } from '@/components/ui/CopyButton';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { toast } from '@/components/ui/Toast';
+import { Share2 } from 'lucide-react';
+import { useTermsAccepted, TermsConsentCheckbox, TermsShortNotice } from '@/components/TermsConsent';
+
+function PageSkeleton() {
+  return (
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 pb-28 md:pb-12 w-full space-y-6" aria-busy="true">
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 shadow-sm">
+        <Skeleton className="h-8 w-2/3 rounded-lg" />
+        <Skeleton className="h-4 w-1/3 rounded-md" />
+        <Skeleton className="h-2 w-full rounded-full" />
+        <div className="flex gap-2 pt-2">
+          <Skeleton className="h-10 w-28 rounded-xl" />
+          <Skeleton className="h-10 w-28 rounded-xl" />
+        </div>
+      </div>
+      <div className="space-y-3">
+        <Skeleton className="h-6 w-36 rounded-lg" />
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 overflow-hidden divide-y divide-zinc-800/60 shadow-sm">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="p-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-10 h-10 rounded-full" />
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-28 rounded-md" />
+                  <Skeleton className="h-3 w-16 rounded-md" />
+                </div>
+              </div>
+              <Skeleton className="h-10 w-28 rounded-xl" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function PublicSplitContent() {
   const slug = useSearchParams().get('slug') ?? '';
@@ -45,6 +76,7 @@ function PublicSplitContent() {
 
   // Admin token if stored in local storage
   const [savedToken, setSavedToken] = useState<string | null>(null);
+  const { accepted: termsAccepted } = useTermsAccepted();
 
   const fetchSplit = useCallback(async () => {
     try {
@@ -72,6 +104,12 @@ function PublicSplitContent() {
   const handleSelectParticipant = async (p: SplitParticipantPublicDto) => {
     setOwnerNotice(null);
     setActionError(null);
+
+    if (!p.paid && !termsAccepted) {
+      toast.error('Aceite os Termos de Uso e a Política de Privacidade para visualizar o Pix.');
+      return;
+    }
+
     setSelectedParticipant(p);
 
     if (p.isOwner) {
@@ -88,6 +126,7 @@ function PublicSplitContent() {
         setOwnerNotice('Você é o organizador desta conta.');
       } else {
         setActionError('Erro ao carregar dados do Pix. Tente novamente.');
+        toast.error('Erro ao carregar dados do Pix. Tente novamente.');
       }
     } finally {
       setLoadingPix(false);
@@ -103,9 +142,11 @@ function PublicSplitContent() {
       setSplit(updated);
       // update local selected participant
       setSelectedParticipant((prev) => (prev ? { ...prev, paymentPending: !prev.paid } : null));
+      toast.success('Organizador avisado do seu pagamento');
     } catch (err: unknown) {
       const msg = err instanceof ApiError ? err.message : 'Falha ao marcar como pago.';
       setActionError(msg);
+      toast.error(msg);
     } finally {
       setMarkingPaid(false);
     }
@@ -114,32 +155,28 @@ function PublicSplitContent() {
   const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   if (loading && !split) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center py-24">
-        <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin mb-3" />
-        <p className="text-zinc-400 text-sm">Carregando divisão da conta...</p>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   if (error || !split) {
     return (
-      <div className="max-w-md mx-auto px-4 py-20 text-center">
-        <div className="w-14 h-14 bg-rose-950 text-rose-400 rounded-xl flex items-center justify-center mx-auto mb-4">
-          <AlertCircle className="w-7 h-7" />
+      <div className="max-w-md mx-auto px-4 py-20 text-center animate-fade-up">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-8 space-y-4 shadow-sm backdrop-blur-sm">
+          <h1 className="text-xl font-semibold text-zinc-50">
+            Conta não encontrada
+          </h1>
+          <p className="text-zinc-400 text-sm">
+            {error || 'Não encontramos nenhuma conta com o código informado.'}
+          </p>
+          <div className="pt-2">
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center min-h-11 px-5 border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-100 rounded-xl text-sm font-medium transition active:scale-[0.98]"
+            >
+              Voltar ao início
+            </Link>
+          </div>
         </div>
-        <h1 className="text-xl font-bold text-white mb-2">
-          Conta não encontrada
-        </h1>
-        <p className="text-zinc-400 text-sm mb-6">
-          {error || 'Não encontramos nenhuma conta com o código informado.'}
-        </p>
-        <Link
-          href="/"
-          className="inline-flex px-4 py-2 bg-zinc-50 text-zinc-950 rounded-xl text-sm font-semibold hover:bg-zinc-100"
-        >
-          Voltar ao início
-        </Link>
       </div>
     );
   }
@@ -149,187 +186,162 @@ function PublicSplitContent() {
       ? Math.min(100, Math.round((split.paidAmount / split.totalAmount) * 100))
       : 0;
 
+  const isOverdue = isOverdueSince(split.createdAt);
+
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 w-full space-y-6">
-      {/* Top Banner & Header */}
-      <div className=" bg-zinc-950 rounded-xl p-6 sm:p-7 border border-zinc-800 space-y-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
-              Racha de Conta &bull; {split.slug}
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-white mt-1">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 pb-28 md:pb-12 w-full space-y-6 animate-fade-up">
+      <header className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6 space-y-5 shadow-sm backdrop-blur-sm">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-50 break-words">
               {split.title}
             </h1>
-            <p className="text-xs text-zinc-500 mt-1">
-              Organizado por <strong className=" text-zinc-300">{split.receiverName}</strong> &bull; {formatDate(split.createdAt)}
+            <p className="text-sm text-zinc-400 mt-1">
+              {split.receiverName} &middot; {formatDate(split.createdAt)}
             </p>
           </div>
-
-          <div className="text-right shrink-0">
-            <span className="text-xs text-zinc-500 uppercase font-semibold block">Total</span>
-            <span className="text-2xl font-semibold text-white">
-              {formatBRL(split.totalAmount)}
-            </span>
+          <div className="sm:text-right shrink-0">
+            <Money value={split.totalAmount} className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-50" />
           </div>
         </div>
 
-        {/* Progress bar */}
-        <div className="pt-2">
-          <div className="flex justify-between items-center text-xs font-semibold mb-1.5">
-            <span className=" text-zinc-400">
-              Arrecadado: <strong className="text-emerald-400">{formatBRL(split.paidAmount)}</strong> ({progressPct}%)
+        <div className="space-y-2">
+          <PaidProgress paid={split.paidCount} total={split.participants.length} pct={progressPct} />
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm text-zinc-400">
+            <span>
+              Recebido <Money value={split.paidAmount} className="font-semibold text-zinc-200" /> ({progressPct}%)
             </span>
-            <span className=" text-zinc-400">
-              {split.paidCount} de {split.participants.length} pagos
-              {split.pendingCount > 0 && ` · ${split.pendingCount} aguardando confirmação`}
-            </span>
-          </div>
-          <div className="w-full bg-zinc-900 h-3 rounded-full overflow-hidden">
-            <div
-              className="bg-zinc-50 h-full rounded-full transition-all duration-500"
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Share buttons */}
-        <div className="flex items-center justify-between pt-3 border-t border-zinc-800">
-          <div className="flex items-center gap-2">
-            <CopyButton
-              text={pageUrl}
-              label="Copiar Link do Racha"
-              copiedLabel="Link Copiado!"
-              size="sm"
-            />
-            {typeof navigator !== 'undefined' && 'share' in navigator && (
-              <button
-                type="button"
-                onClick={() =>
-                  navigator.share?.({
-                    title: split.title,
-                    text: `Racha de conta: ${split.title} (${formatBRL(split.totalAmount)})`,
-                    url: pageUrl,
-                  })
-                }
-                className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-lg border border-zinc-800 hover:bg-zinc-900 text-zinc-300"
-              >
-                <Share2 className="w-3.5 h-3.5" /> Compartilhar
-              </button>
+            {split.pendingCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 text-amber-400 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                {split.pendingCount} aguardando confirmação
+              </span>
             )}
           </div>
+        </div>
 
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-zinc-800/60">
+          <CopyButton
+            text={pageUrl}
+            label="Copiar link"
+            copiedLabel="Link copiado"
+            size="sm"
+          />
+          {typeof navigator !== 'undefined' && 'share' in navigator && (
+            <button
+              type="button"
+              onClick={() =>
+                navigator.share?.({
+                  title: split.title,
+                  text: `Racha de conta: ${split.title} (${formatBRL(split.totalAmount)})`,
+                  url: pageUrl,
+                })
+              }
+              className="inline-flex items-center gap-1.5 px-3.5 min-h-11 text-sm rounded-xl border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 font-medium transition active:scale-[0.98] cursor-pointer"
+            >
+              <Share2 className="w-4 h-4" /> Compartilhar
+            </button>
+          )}
           {savedToken && (
             <Link
               href={splitAdminPath(split.slug, savedToken)}
-              className="text-xs font-semibold text-emerald-400 hover:underline flex items-center gap-1"
+              className="ml-auto text-sm font-medium text-accent hover:text-accent-hover min-h-11 flex items-center transition"
             >
-              <Shield className="w-3.5 h-3.5" /> Painel Admin
+              Painel do organizador &rarr;
             </Link>
           )}
         </div>
-      </div>
+      </header>
 
-      {/* Action error banner */}
       {actionError && (
-        <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-sm flex items-center justify-between gap-3 animate-in fade-in">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
-            <span>{actionError}</span>
-          </div>
+        <div role="alert" className="p-4 rounded-xl border border-rose-800/80 bg-rose-950/20 text-rose-300 text-sm flex items-center justify-between gap-3 animate-fade-in">
+          <span>{actionError}</span>
           <button
             type="button"
             onClick={() => setActionError(null)}
-            className="text-xs font-semibold hover:underline cursor-pointer"
+            className="text-sm font-medium hover:underline cursor-pointer min-h-11 px-2"
           >
             Fechar
           </button>
         </div>
       )}
 
-      {/* Owner notice alert if clicked */}
       {ownerNotice && (
-        <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-50 text-sm flex items-center gap-3 animate-in fade-in">
-          <span>{ownerNotice}</span>
+        <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/60 text-sm text-zinc-300 flex items-center gap-2.5 animate-fade-in">
+          <p>{ownerNotice}</p>
         </div>
       )}
 
-      {/* Participants List */}
-      <div className=" bg-zinc-950 rounded-xl p-6 sm:p-7 border border-zinc-800 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-            <User className="w-5 h-5 text-emerald-400" />
-            Escolha seu nome para pagar
-          </h2>
-          <span className="text-xs text-zinc-500">Clique em &quot;Sou eu&quot;</span>
+      <section className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-base sm:text-lg font-semibold text-zinc-50">Selecione seu nome</h2>
+          <span className="text-xs text-zinc-400 font-medium">{split.participants.length} participantes</span>
+        </div>
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-2.5">
+          <TermsShortNotice />
+          <TermsConsentCheckbox id="split-terms-consent" />
         </div>
 
-        <div className="divide-y divide-zinc-800">
-          {split.participants.map((p) => (
-            <div
-              key={p.id}
-              className="py-3.5 flex items-center justify-between gap-3 group hover:bg-zinc-900/30 px-2 rounded-xl transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm ${
-                    p.paid
-                      ? '  bg-emerald-950 text-emerald-300'
-                      : '  bg-zinc-900 text-zinc-300'
-                  }`}
-                >
-                  {p.name.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-white text-sm">
-                      {p.name}
-                    </span>
-                    {p.isOwner && (
-                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-zinc-900 text-zinc-400">
-                        Organizador
-                      </span>
-                    )}
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 divide-y divide-zinc-800/60 overflow-hidden shadow-sm backdrop-blur-sm">
+          {split.participants.map((p) => {
+            const initial = p.name.trim().charAt(0).toUpperCase();
+            let actionLabel = 'Pagar minha parte';
+            let actionClass = 'bg-accent hover:bg-accent-hover text-accent-fg shadow-sm';
+            if (p.paid) {
+              actionLabel = 'Ver comprovante';
+              actionClass = 'border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-300';
+            } else if (p.paymentPending) {
+              actionLabel = 'Ver Pix';
+              actionClass = 'border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300';
+            }
+            return (
+              <div
+                key={p.id}
+                className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-800/20 transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className="w-10 h-10 rounded-full bg-zinc-800/80 border border-zinc-700/60 flex items-center justify-center text-xs font-semibold text-zinc-200 shrink-0 select-none"
+                    aria-hidden="true"
+                  >
+                    {initial}
                   </div>
-                  <span className="text-xs font-bold text-emerald-400">
-                    {formatBRL(p.amount)}
-                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-zinc-100 break-words flex items-center gap-1.5 flex-wrap">
+                      <span>{p.name}</span>
+                      {p.isOwner && (
+                        <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-zinc-800 text-zinc-400">
+                          organizador
+                        </span>
+                      )}
+                    </p>
+                    <div className="mt-1">
+                      <ParticipantStatusPill paid={p.paid} paymentPending={p.paymentPending} isOverdue={isOverdue} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-1 sm:pt-0 border-t sm:border-0 border-zinc-800/40">
+                  <Money
+                    value={p.amount}
+                    className={`text-base font-semibold tabular-nums text-right ${p.paid ? 'text-emerald-400' : 'text-zinc-50'}`}
+                  />
+                  <button
+                    type="button"
+                    disabled={loadingPix || (!p.paid && !termsAccepted)}
+                    onClick={() => handleSelectParticipant(p)}
+                    className={`px-3.5 min-h-11 rounded-xl text-xs sm:text-sm font-semibold transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0 ${
+                      actionClass
+                    }`}
+                  >
+                    {actionLabel}
+                  </button>
                 </div>
               </div>
-
-              <div className="flex items-center gap-2">
-                {p.paid ? (
-                  <Badge variant="emerald" size="sm">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Pago
-                  </Badge>
-                ) : p.paymentPending ? (
-                  <Badge variant="blue" size="sm">
-                    <Clock className="w-3.5 h-3.5" /> Aguardando confirmação
-                  </Badge>
-                ) : (
-                  <Badge variant="amber" size="sm">
-                    <Clock className="w-3.5 h-3.5" /> Pendente
-                  </Badge>
-                )}
-
-                <button
-                  type="button"
-                  disabled={loadingPix}
-                  onClick={() => handleSelectParticipant(p)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ${
-                    p.paid || p.paymentPending
-                      ? 'border border-zinc-800 text-zinc-400 hover:bg-zinc-900'
-                      : 'bg-zinc-50 text-zinc-950 hover:bg-zinc-200'
-                  }`}
-                >
-                  <QrCode className="w-3.5 h-3.5" />
-                  {p.paid || p.paymentPending ? 'Ver Pix' : 'Sou eu (Pagar)'}
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
-      </div>
+      </section>
 
       {/* Pix QR Modal when participant selected */}
       {selectedParticipant && pixData && (
@@ -347,6 +359,9 @@ function PublicSplitContent() {
           isPending={selectedParticipant.paymentPending}
           onMarkPaid={handleMarkPaid}
           isMarkingPaid={markingPaid}
+          splitTitle={split.title}
+          payerName={selectedParticipant.name}
+          participantId={selectedParticipant.id}
         />
       )}
     </div>
@@ -355,14 +370,7 @@ function PublicSplitContent() {
 
 export default function PublicSplitPage() {
   return (
-    <React.Suspense
-      fallback={
-        <div className="py-24 flex flex-col items-center justify-center">
-          <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin mb-3" />
-          <p className="text-zinc-400 text-sm">Carregando divisão da conta...</p>
-        </div>
-      }
-    >
+    <React.Suspense fallback={<PageSkeleton />}>
       <PublicSplitContent />
     </React.Suspense>
   );

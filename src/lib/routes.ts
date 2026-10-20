@@ -3,8 +3,10 @@ export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 export const splitPath = (slug: string) => `/r?slug=${encodeURIComponent(slug)}`;
 
-export const splitAdminPath = (slug: string, token?: string | null) =>
-  `/r/admin?slug=${encodeURIComponent(slug)}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
+export const splitAdminPath = (slug: string, token?: string | null) => {
+  const tokenQuery = token ? `&token=${encodeURIComponent(token)}` : '';
+  return `/r/admin?slug=${encodeURIComponent(slug)}${tokenQuery}`;
+};
 
 export const groupPath = (id: string) => `/despesas/group?id=${encodeURIComponent(id)}`;
 

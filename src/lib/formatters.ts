@@ -1,4 +1,4 @@
-import { ExpenseCategory, PaymentMethod, PixKeyType } from './api';
+import { ExpenseCategory, PixKeyType } from './api';
 
 export function formatBRL(amount: number | null | undefined): string {
   if (amount === null || amount === undefined || isNaN(amount)) {
@@ -53,16 +53,7 @@ export const CATEGORY_LABELS: Record<ExpenseCategory, string> = {
   Travel: 'Viagem',
   Shopping: 'Compras',
   Other: 'Outros',
-};
-
-export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
-  Pix: 'Pix',
-  Cash: 'Dinheiro',
-  CreditCard: 'Cartão de Crédito',
-  DebitCard: 'Cartão de Débito',
-  BankTransfer: 'Transferência',
-  MealVoucher: 'Vale Refeição / Alimentação',
-  Other: 'Outro',
+  Uncategorized: 'Sem Categoria',
 };
 
 export const PIX_KEY_TYPE_LABELS: Record<PixKeyType, string> = {
@@ -83,10 +74,10 @@ export function normalizePixKey(key: string, type: PixKeyType): string {
       return trimmed.toLowerCase();
     case 'Phone': {
       const digits = trimmed.replace(/\D/g, '');
-      if (digits.startsWith('55') && digits.length >= 12) {
+      if (digits.startsWith('55') && (digits.length === 12 || digits.length === 13)) {
         return `+${digits}`;
       }
-      if (!digits.startsWith('55') && digits.length >= 10) {
+      if (digits.length === 10 || digits.length === 11) {
         return `+55${digits}`;
       }
       return trimmed.startsWith('+') ? trimmed : `+${digits}`;
@@ -95,6 +86,31 @@ export function normalizePixKey(key: string, type: PixKeyType): string {
     default:
       return trimmed;
   }
+}
+
+function checkDigit(digits: string, weights: number[]): number {
+  let sum = 0;
+  for (let i = 0; i < weights.length; i++) sum += Number(digits[i]) * weights[i];
+  const r = sum % 11;
+  return r < 2 ? 0 : 11 - r;
+}
+
+export function isValidCpf(value: string): boolean {
+  const d = value.replace(/\D/g, '');
+  if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
+  return (
+    checkDigit(d, [10, 9, 8, 7, 6, 5, 4, 3, 2]) === Number(d[9]) &&
+    checkDigit(d, [11, 10, 9, 8, 7, 6, 5, 4, 3, 2]) === Number(d[10])
+  );
+}
+
+export function isValidCnpj(value: string): boolean {
+  const d = value.replace(/\D/g, '');
+  if (d.length !== 14 || /^(\d)\1{13}$/.test(d)) return false;
+  return (
+    checkDigit(d, [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]) === Number(d[12]) &&
+    checkDigit(d, [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]) === Number(d[13])
+  );
 }
 
 export function maskPixKey(value: string, type: PixKeyType): string {
@@ -222,4 +238,11 @@ export function sanitizePixCity(city: string): string {
     .toUpperCase()
     .trim()
     .slice(0, 15);
+}
+
+const OVERDUE_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** True when `createdAt` is more than 7 days ago. */
+export function isOverdueSince(createdAt: string): boolean {
+  return Date.now() - new Date(createdAt).getTime() > OVERDUE_AFTER_MS;
 }

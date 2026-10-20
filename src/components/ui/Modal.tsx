@@ -102,7 +102,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-50/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in sm:overflow-y-auto"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -110,12 +110,13 @@ export function Modal({
     >
       <div
         ref={modalRef}
-        className={`w-full ${maxWidthClasses}  bg-zinc-950 rounded-xl border border-zinc-800 overflow-hidden transform transition-all my-8`}
+        className={`w-full ${maxWidthClasses} bg-zinc-950 rounded-t-2xl sm:rounded-2xl border border-zinc-800 overflow-hidden max-h-[92dvh] sm:max-h-none flex flex-col animate-sheet-up sm:animate-modal-pop shadow-2xl sm:my-8`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between p-5 border-b border-zinc-800">
+        <div className="sm:hidden mx-auto mt-3 h-1.5 w-12 shrink-0 rounded-full bg-zinc-700/80" aria-hidden="true" />
+        <div className="flex items-start justify-between p-4 sm:p-5 border-b border-zinc-800 shrink-0">
           <div>
-            <h2 id="modal-title" className="text-xl font-bold text-white">
+            <h2 id="modal-title" className="text-xl font-semibold text-zinc-50 tracking-tight">
               {title}
             </h2>
             {description && (
@@ -125,14 +126,14 @@ export function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-zinc-500 hover:text-zinc-200 rounded-lg hover:bg-zinc-900 transition-colors"
+            className="p-2 -mr-1 text-zinc-400 hover:text-zinc-200 rounded-xl hover:bg-zinc-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             aria-label="Fechar modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 max-h-[80vh] overflow-y-auto">{children}</div>
+        <div className="p-4 sm:p-6 sm:max-h-[80vh] overflow-y-auto pb-[calc(1rem+env(safe-area-inset-bottom))]">{children}</div>
       </div>
     </div>
   );

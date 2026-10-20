@@ -1,18 +1,10 @@
 import { getGroupCredentials } from './storage';
+import { toast } from '@/components/ui/Toast';
 
 // RachaConta - Typed API Client (docs/API.md)
 
 export type SplitMode = 'Equal' | 'Custom';
 export type PixKeyType = 'Cpf' | 'Cnpj' | 'Email' | 'Phone' | 'Random';
-
-export type PaymentMethod =
-  | 'Pix'
-  | 'Cash'
-  | 'CreditCard'
-  | 'DebitCard'
-  | 'BankTransfer'
-  | 'MealVoucher'
-  | 'Other';
 
 export type ExpenseCategory =
   | 'Food'
@@ -24,7 +16,8 @@ export type ExpenseCategory =
   | 'Health'
   | 'Travel'
   | 'Shopping'
-  | 'Other';
+  | 'Other'
+  | 'Uncategorized';
 
 export type ShareMode = 'Equal' | 'Custom' | 'Percentage';
 
@@ -118,6 +111,9 @@ export interface MemberDto {
   name: string;
   pixKey: string | null;
   pixKeyType: PixKeyType | null;
+  /** True once someone picked this member as themselves. */
+  claimed: boolean;
+  isAdmin: boolean;
 }
 
 export interface MemberRequest {
@@ -149,8 +145,34 @@ export interface GroupDto {
   currency: string;
   createdAt: string;
   members: MemberDto[];
+  /** Invite token; hidden from people who only hold the invite link. */
   accessToken?: string | null;
+  /** Only returned to the holder of the admin token. */
   adminToken?: string | null;
+  /** The member the caller picked as themselves, if any. */
+  yourMemberId?: string | null;
+  isAdmin: boolean;
+}
+
+export interface ClaimRequest {
+  memberId?: string | null;
+  newName?: string | null;
+}
+
+export interface ClaimResultDto {
+  /** Personal token, shown once. Store it and send it as X-Group-Token. */
+  memberToken: string;
+  member: MemberDto;
+}
+
+export type ConfirmationStatus = 'Confirmed' | 'Contested';
+
+export interface ExpenseConfirmationDto {
+  memberId: string;
+  memberName: string;
+  status: ConfirmationStatus;
+  comment: string | null;
+  createdAt: string;
 }
 
 export interface CreateGroupRequest {
@@ -178,13 +200,18 @@ export interface ExpenseDto {
   amount: number;
   date: string; // yyyy-MM-dd
   category: ExpenseCategory;
-  paymentMethod: PaymentMethod;
   paidByMemberId: string;
   paidByName: string;
   shareMode: ShareMode;
   shares: ExpenseShareDto[];
   notes: string | null;
   createdAt: string;
+  createdByMemberId: string | null;
+  createdByName: string | null;
+  updatedByName: string | null;
+  updatedAt: string | null;
+  /** Who agreed or disagreed. Required confirmers = shares minus the payer. */
+  confirmations: ExpenseConfirmationDto[];
 }
 
 export interface ExpenseShareRequest {
@@ -198,7 +225,6 @@ export interface CreateExpenseRequest {
   amount: number;
   date: string; // yyyy-MM-dd
   category: ExpenseCategory;
-  paymentMethod: PaymentMethod;
   paidByMemberId: string;
   shareMode: ShareMode;
   shares: ExpenseShareRequest[];
@@ -216,17 +242,22 @@ export interface SettlementDto {
   toName: string;
   amount: number;
   date: string;
-  paymentMethod: PaymentMethod;
   notes: string | null;
   createdAt: string;
+  createdByMemberId: string | null;
+  createdByName: string | null;
+  /** Pending payments do not count in balances until the receiver confirms. */
+  status: SettlementStatus;
+  confirmedAt: string | null;
 }
+
+export type SettlementStatus = 'Pending' | 'Confirmed';
 
 export interface CreateSettlementRequest {
   fromMemberId: string;
   toMemberId: string;
   amount: number;
   date: string;
-  paymentMethod: PaymentMethod;
   notes?: string | null;
 }
 
@@ -259,11 +290,6 @@ export interface CategoryStatDto {
   total: number;
 }
 
-export interface PaymentMethodStatDto {
-  paymentMethod: PaymentMethod;
-  total: number;
-}
-
 export interface MemberStatDto {
   memberId: string;
   name: string;
@@ -280,7 +306,6 @@ export interface StatsDto {
   groupId: string;
   totalSpent: number;
   byCategory: CategoryStatDto[];
-  byPaymentMethod: PaymentMethodStatDto[];
   byMember: MemberStatDto[];
   byMonth: MonthStatDto[];
 }
@@ -314,7 +339,8 @@ function attachGroupToken(headers: Headers, path: string): void {
   if (!groupMatch || headers.has('X-Group-Token')) return;
 
   const credentials = getGroupCredentials(groupMatch[1]);
-  const token = credentials?.adminToken ?? credentials?.accessToken;
+  // Personal token wins: it carries the member's identity. Admin/invite tokens are fallbacks.
+  const token = credentials?.memberToken ?? credentials?.adminToken ?? credentials?.accessToken;
   if (token) headers.set('X-Group-Token', token);
 }
 
@@ -357,14 +383,35 @@ async function buildApiError(response: Response): Promise<ApiError> {
   return new ApiError(response.status, errorMessage, problem);
 }
 
+let wakeNoticeShown = false;
+const WAKE_DELAY_MS = 4000;
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
   const headers = buildRequestHeaders(path, options);
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  const timer = setTimeout(() => {
+    if (!wakeNoticeShown) {
+      wakeNoticeShown = true;
+      toast.info('Acordando o servidor, pode levar até 1 minuto…');
+    }
+  }, WAKE_DELAY_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (err) {
+    if (err instanceof TypeError) {
+      throw new ApiError(0, 'Sem conexão com o servidor. Tente novamente.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+    wakeNoticeShown = false;
+  }
 
   if (!response.ok) {
     throw await buildApiError(response);
@@ -471,6 +518,32 @@ export const api = {
     });
   },
 
+  /** Picks who you are. Uses the admin or invite token on purpose, never the member token. */
+  claimMember(groupId: string, data: ClaimRequest): Promise<ClaimResultDto> {
+    const credentials = getGroupCredentials(groupId);
+    const token = credentials?.adminToken ?? credentials?.accessToken ?? '';
+    return request<ClaimResultDto>(`/api/groups/${encodeURIComponent(groupId)}/claim`, {
+      method: 'POST',
+      headers: { 'X-Group-Token': token },
+      body: JSON.stringify(data),
+    });
+  },
+
+  /** Admin: replaces the invite token. The old invite link stops working. */
+  rotateInvite(groupId: string): Promise<{ accessToken: string }> {
+    return request<{ accessToken: string }>(`/api/groups/${encodeURIComponent(groupId)}/rotate-invite`, {
+      method: 'POST',
+    });
+  },
+
+  /** Admin: frees a member so a new person can claim it (lost device). */
+  resetMemberClaim(groupId: string, memberId: string): Promise<void> {
+    return request<void>(
+      `/api/groups/${encodeURIComponent(groupId)}/members/${encodeURIComponent(memberId)}/reset-claim`,
+      { method: 'POST' }
+    );
+  },
+
   // Members
   addMember(groupId: string, data: MemberRequest): Promise<MemberDto> {
     return request<MemberDto>(`/api/groups/${encodeURIComponent(groupId)}/members`, {
@@ -511,7 +584,6 @@ export const api = {
       from?: string;
       to?: string;
       category?: string;
-      paymentMethod?: string;
       memberId?: string;
     }
   ): Promise<ExpenseDto[]> {
@@ -519,7 +591,6 @@ export const api = {
     if (filters?.from) params.set('from', filters.from);
     if (filters?.to) params.set('to', filters.to);
     if (filters?.category) params.set('category', filters.category);
-    if (filters?.paymentMethod) params.set('paymentMethod', filters.paymentMethod);
     if (filters?.memberId) params.set('memberId', filters.memberId);
 
     const query = params.toString() ? `?${params.toString()}` : '';
@@ -549,6 +620,18 @@ export const api = {
     );
   },
 
+  /** A person the expense was split with confirms or contests it. */
+  confirmExpense(
+    groupId: string,
+    expenseId: string,
+    data: { status: ConfirmationStatus; comment?: string | null }
+  ): Promise<ExpenseDto> {
+    return request<ExpenseDto>(
+      `/api/groups/${encodeURIComponent(groupId)}/expenses/${encodeURIComponent(expenseId)}/confirmation`,
+      { method: 'POST', body: JSON.stringify(data) }
+    );
+  },
+
   deleteExpense(groupId: string, expenseId: string): Promise<void> {
     return request<void>(
       `/api/groups/${encodeURIComponent(groupId)}/expenses/${encodeURIComponent(expenseId)}`,
@@ -568,6 +651,14 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     });
+  },
+
+  /** The receiver confirms the money arrived; only then it counts in balances. */
+  confirmSettlement(groupId: string, settlementId: string): Promise<SettlementDto> {
+    return request<SettlementDto>(
+      `/api/groups/${encodeURIComponent(groupId)}/settlements/${encodeURIComponent(settlementId)}/confirm`,
+      { method: 'POST' }
+    );
   },
 
   deleteSettlement(groupId: string, settlementId: string): Promise<void> {

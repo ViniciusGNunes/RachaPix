@@ -1,0 +1,13 @@
+{
+  "name": "RachaConta",
+  "short_name": "RachaConta",
+  "description": "Divida contas e organize despesas com Pix",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
   api,
@@ -12,6 +12,8 @@ import {
 } from '@/lib/api';
 import {
   formatBRL,
+  isValidCnpj,
+  isValidCpf,
   maskPixKey,
   normalizePixKey,
   sanitizePixCity,
@@ -25,10 +27,30 @@ import {
 import { getCitiesByState } from '@/lib/ibge';
 import { getLastCity, saveLastCity, saveSplit, type LastCity } from '@/lib/storage';
 import { absoluteUrl, splitAdminPath, splitPath } from '@/lib/routes';
+import { Money } from '@/components/ui/Money';
+import { toast } from '@/components/ui/Toast';
+import { CopyButton } from '@/components/ui/CopyButton';
+import { Combobox, Select } from '@/components/ui/Select';
+import { Plus, Trash2, ArrowLeft, Check } from 'lucide-react';
+import { useTermsAccepted, TermsConsentCheckbox, TermsShortNotice } from '@/components/TermsConsent';
 
 const DEFAULT_CITY = 'BRASIL';
 
-const STEP_LABELS = ['Dados da conta', 'Chave Pix', 'Participantes'];
+function sanitizeDecimalInput(val: string): string {
+  const normalized = val.replace(',', '.');
+  const cleaned = normalized.replace(/[^0-9.]/g, '');
+  if (!cleaned) return '';
+
+  const parts = cleaned.split('.');
+  if (parts.length === 1) {
+    return parts[0];
+  }
+  const integerPart = parts[0];
+  const decimalPart = parts.slice(1).join('').slice(0, 2);
+  return `${integerPart}.${decimalPart}`;
+}
+
+const STEP_LABELS = ['Valor', 'Pix para receber', 'Quem vai pagar'];
 const LAST_STEP = STEP_LABELS.length - 1;
 
 const PIX_KEY_TYPE_OPTIONS = (Object.keys(PIX_KEY_TYPE_LABELS) as PixKeyType[]).map((type) => ({
@@ -37,19 +59,24 @@ const PIX_KEY_TYPE_OPTIONS = (Object.keys(PIX_KEY_TYPE_LABELS) as PixKeyType[]).
 }));
 
 const UF_OPTIONS = [{ value: '', label: 'UF' }, ...UF_LIST.map((uf) => ({ value: uf, label: uf }))];
-import { CopyButton } from '@/components/ui/CopyButton';
-import { Combobox, Select } from '@/components/ui/Select';
-import { useIsMobile } from '@/lib/useIsMobile';
-import {
-  Receipt,
-  Plus,
-  Trash2,
-  CheckCircle2,
-  AlertCircle,
-  ExternalLink,
-  Shield,
-  Users,
-} from 'lucide-react';
+
+function stepClass(active: boolean, slideDir: 'left' | 'right'): string {
+  if (!active) return 'hidden lg:block';
+  return slideDir === 'right' ? 'animate-slide-from-right' : 'animate-slide-from-left';
+}
+
+function pixInputMode(type: PixKeyType): 'email' | 'tel' | 'numeric' | 'text' {
+  if (type === 'Email') return 'email';
+  if (type === 'Phone') return 'tel';
+  if (type === 'Cpf' || type === 'Cnpj') return 'numeric';
+  return 'text';
+}
+
+function participantInitial(p: { name: string; isOwner: boolean }, idx: number): string {
+  const trimmed = p.name.trim();
+  if (trimmed) return trimmed.charAt(0).toUpperCase();
+  return p.isOwner ? 'E' : String(idx + 1);
+}
 
 interface ParticipantField {
   id: string;
@@ -110,9 +137,11 @@ export default function RacharPage() {
 
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
-  const isMobile = useIsMobile();
+  const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [createdSplit, setCreatedSplit] = useState<SplitAdminDto | null>(null);
+  const lastStepTransitionRef = useRef(0);
+  const { accepted: termsAccepted } = useTermsAccepted();
 
   const totalAmount = parseFloat(totalAmountStr) || 0;
 
@@ -175,6 +204,12 @@ export default function RacharPage() {
       if (!pixKey.trim()) {
         return 'Informe a chave Pix para receber os pagamentos.';
       }
+      if (pixKeyType === 'Cpf' && !isValidCpf(pixKey)) {
+        return 'CPF inválido. Confira os números digitados.';
+      }
+      if (pixKeyType === 'Cnpj' && !isValidCnpj(pixKey)) {
+        return 'CNPJ inválido. Confira os números digitados.';
+      }
       if (!receiverName.trim() || receiverName.length > 25) {
         return 'O nome do recebedor deve ter até 25 caracteres.';
       }
@@ -209,7 +244,9 @@ export default function RacharPage() {
   };
 
   const goToStep = (next: number) => {
+    lastStepTransitionRef.current = Date.now();
     setErrorMessage(null);
+    setSlideDir(next >= step ? 'right' : 'left');
     setStep(next);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -225,9 +262,13 @@ export default function RacharPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (Date.now() - lastStepTransitionRef.current < 500) {
+      return;
+    }
     setErrorMessage(null);
 
-    if (isMobile && step < LAST_STEP) {
+    const isMobileOrTablet = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
+    if (isMobileOrTablet && step < LAST_STEP) {
       handleNext();
       return;
     }
@@ -237,8 +278,15 @@ export default function RacharPage() {
       if (error) {
         setStep(i);
         setErrorMessage(error);
+        toast.error(error);
         return;
       }
+    }
+
+    if (!termsAccepted) {
+      setErrorMessage('Você precisa aceitar os Termos de Uso e a Política de Privacidade para criar o racha.');
+      toast.error('Você precisa aceitar os Termos de Uso e a Política de Privacidade.');
+      return;
     }
 
     try {
@@ -285,93 +333,88 @@ export default function RacharPage() {
 
       setCreatedSplit(result);
     } catch (err: unknown) {
-      if (err instanceof ApiError) {
-        setErrorMessage(err.message);
-      } else {
-        setErrorMessage('Não foi possível criar o racha. Verifique os dados ou tente novamente.');
-      }
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : 'Não foi possível criar o racha. Verifique os dados ou tente novamente.';
+      setErrorMessage(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
+  const inputCls =
+    'w-full h-11 lg:h-10 px-3.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors';
+  const labelCls = 'block text-[13px] font-medium text-zinc-400 mb-1.5 lg:mb-1';
+  const segCls = (active: boolean) =>
+    `h-10 lg:h-9 py-2 lg:py-1 px-3 rounded-lg text-sm font-medium transition-all ${
+      active
+        ? 'bg-zinc-800 text-accent shadow-sm'
+        : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50'
+    }`;
+  const stepBadgeCls =
+    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 border border-accent/30 text-xs font-semibold text-accent';
 
   if (createdSplit) {
     const publicUrl = absoluteUrl(splitPath(createdSplit.slug));
     const adminUrl = absoluteUrl(splitAdminPath(createdSplit.slug, createdSplit.adminToken));
 
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12">
-        <div className=" bg-zinc-950 rounded-xl p-8 border border-zinc-700 space-y-6">
+      <div className="w-full max-w-4xl lg:max-w-none lg:w-[60vw] mx-auto px-4 sm:px-6 py-12 space-y-8 animate-fade-up">
+        <div className="p-6 sm:p-8 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-6">
           <div className="flex flex-col items-center text-center space-y-2">
-            <div className="w-16 h-16 rounded-full bg-zinc-900 text-zinc-50 flex items-center justify-center">
-              <CheckCircle2 className="w-10 h-10" />
+            <div className="w-12 h-12 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center animate-pop">
+              <Check className="w-6 h-6 stroke-[2.5]" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-white">
-              Racha criado com sucesso!
-            </h1>
-            <p className=" text-zinc-400 text-sm">
-              &quot;{createdSplit.title}&quot; &bull; Total: {formatBRL(createdSplit.totalAmount)}
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-50">Racha criado</h1>
+            <p className="text-zinc-400 text-sm">
+              {createdSplit.title} &middot; <Money value={createdSplit.totalAmount} />
             </p>
           </div>
 
-          {/* Links Section */}
-          <div className="space-y-4 pt-4">
-            {/* Public Link */}
-            <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-zinc-50" /> Link dos Participantes
-                </span>
-                <span className="text-xs text-zinc-500">Envie no WhatsApp / grupo</span>
-              </div>
+          <div className="space-y-6 pt-2">
+            <div>
+              <h2 className="text-sm font-semibold text-zinc-200">Link dos participantes</h2>
+              <p className="text-xs text-zinc-400 mb-2">Envie no grupo.</p>
               <div className="flex items-center gap-2">
                 <input
                   readOnly
                   value={publicUrl}
-                  className="flex-1 text-xs sm:text-sm bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 font-mono text-zinc-200"
+                  className="flex-1 min-w-0 text-xs bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 font-mono text-zinc-300 truncate"
                 />
-                <CopyButton text={publicUrl} label="Copiar" variant="primary" />
+                <CopyButton text={publicUrl} label="Copiar" variant="secondary" />
               </div>
             </div>
 
-            {/* Admin Link */}
-            <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-800">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                  <Shield className="w-4 h-4 text-amber-400" /> Link de Administrador (Seu link)
-                </span>
-                <span className="text-xs text-amber-400 font-medium">Guarde este link</span>
-              </div>
+            <div>
+              <h2 className="text-sm font-semibold text-zinc-200">Seu link de administrador</h2>
+              <p className="text-xs text-amber-400/90 mb-2">
+                Guarde este link. Com ele você confere quem pagou.
+              </p>
               <div className="flex items-center gap-2">
                 <input
                   readOnly
                   value={adminUrl}
-                  className="flex-1 text-xs sm:text-sm bg-zinc-950 border border-amber-800 rounded-lg p-2.5 font-mono text-zinc-200"
+                  className="flex-1 min-w-0 text-xs bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 font-mono text-zinc-300 truncate"
                 />
                 <CopyButton text={adminUrl} label="Copiar" variant="secondary" />
               </div>
-              <p className="text-xs text-amber-400 mt-2">
-                Com ele você confere quem pagou e gerencia o status das transferências.
-              </p>
             </div>
           </div>
 
-          {/* Navigation Buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-zinc-800">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <Link
               href={splitPath(createdSplit.slug)}
-              className="w-full py-3 px-4 rounded-xl border border-zinc-800 font-semibold text-zinc-200 hover:bg-zinc-900 text-center text-sm flex items-center justify-center gap-2 transition-colors"
+              className="h-12 px-4 rounded-xl border border-zinc-800 font-semibold text-zinc-200 hover:bg-zinc-800/60 text-sm flex items-center justify-center transition-colors active:scale-[0.98]"
             >
-              <ExternalLink className="w-4 h-4" />
-              Ver Página Pública
+              Ver página pública
             </Link>
             <Link
               href={splitAdminPath(createdSplit.slug, createdSplit.adminToken)}
-              className="w-full py-3 px-4 rounded-xl bg-zinc-50 text-zinc-950 font-semibold hover:bg-zinc-200 text-center text-sm flex items-center justify-center gap-2 transition-colors"
+              className="h-12 px-4 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-sm flex items-center justify-center transition-colors active:scale-[0.98]"
             >
-              <Shield className="w-4 h-4" />
-              Ir para Painel do Admin
+              Abrir painel
             </Link>
           </div>
         </div>
@@ -380,373 +423,430 @@ export default function RacharPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 w-full">
-      <div className="mb-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 lg:pt-4 pb-28 lg:pb-8 w-full animate-fade-up overflow-x-clip">
+      <div className="mb-8 lg:mb-4">
         <Link
           href="/"
-          className="text-xs font-medium text-zinc-400 hover:text-zinc-50 mb-2 inline-block"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-50 transition-colors mb-3 lg:mb-1.5"
         >
-          &larr; Voltar para o início
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Voltar
         </Link>
-        <h1 className="text-3xl font-semibold text-white flex items-center gap-2.5">
-          <Receipt className="w-8 h-8 text-zinc-50" />
-          Rachar uma Conta
+        <h1 className="text-2xl sm:text-3xl lg:text-2xl font-semibold tracking-tight text-zinc-50">
+          Dividir conta
         </h1>
-        <p className=" text-zinc-400 text-sm mt-1">
-          Preencha os dados da conta e gere QR Codes Pix automáticos para cada participante.
-        </p>
       </div>
 
       {errorMessage && (
-        <div className="mb-6 p-4 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-sm flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-          <span>{errorMessage}</span>
+        <div
+          role="alert"
+          className="mb-6 p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-sm"
+        >
+          {errorMessage}
         </div>
       )}
 
-      <div className="sm:hidden mb-6" aria-label="Progresso">
-        <div className="flex items-center justify-between text-xs font-semibold mb-2">
-          <span className="text-zinc-300">{STEP_LABELS[step]}</span>
-          <span className="text-zinc-500">
-            Etapa {step + 1} de {STEP_LABELS.length}
-          </span>
-        </div>
-        <div
-          className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden"
-          role="progressbar"
-          aria-valuemin={1}
-          aria-valuemax={STEP_LABELS.length}
-          aria-valuenow={step + 1}
-        >
-          <div
-            className="h-full bg-zinc-50 rounded-full transition-all duration-300"
-            style={{ width: `${((step + 1) / STEP_LABELS.length) * 100}%` }}
-          />
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} noValidate className="space-y-8">
-        {/* Step 1: Info da Conta */}
-        <div className={`bg-zinc-950 rounded-xl p-6 sm:p-7 border border-zinc-800 space-y-5 ${step === 0 ? '' : 'hidden sm:block'}`}>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-zinc-900 text-zinc-50 text-xs flex items-center justify-center font-bold">
-              1
-            </span>
-            Dados da Conta
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Título ou Motivo *
-              </label>
-              <input
-                type="text"
-                required
-                maxLength={80}
-                placeholder="Ex: Churrasco de Domingo, Pizza com a galera"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-white text-sm focus:ring-2 focus:ring-zinc-600 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Valor Total (R$) *
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                max="1000000"
-                required
-                placeholder="0.00"
-                value={totalAmountStr}
-                onChange={(e) => setTotalAmountStr(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-white text-sm font-semibold focus:ring-2 focus:ring-zinc-600 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Modo de Divisão *
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSplitMode('Equal')}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold border transition-colors ${
-                    splitMode === 'Equal'
-                      ? ' bg-zinc-900 border-zinc-700 text-zinc-50'
-                      : ' border-zinc-800 text-zinc-400 hover:bg-zinc-900/50'
-                  }`}
-                >
-                  Igual (Partes iguais)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSplitMode('Custom')}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold border transition-colors ${
-                    splitMode === 'Custom'
-                      ? ' bg-zinc-900 border-zinc-700 text-zinc-50'
-                      : ' border-zinc-800 text-zinc-400 hover:bg-zinc-900/50'
-                  }`}
-                >
-                  Personalizado (Valores)
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Step 2: Dados do Pix para Recebimento */}
-        <div className={`bg-zinc-950 rounded-xl p-6 sm:p-7 border border-zinc-800 space-y-5 ${step === 1 ? '' : 'hidden sm:block'}`}>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-zinc-900 text-zinc-50 text-xs flex items-center justify-center font-bold">
-              2
-            </span>
-            Chave Pix para Recebimento
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Tipo da Chave *
-              </label>
-              <Select
-                ariaLabel="Tipo da chave Pix"
-                value={pixKeyType}
-                onChange={(value) => {
-                  const nextType = value as PixKeyType;
-                  setPixKeyType(nextType);
-                  setPixKey((current) => maskPixKey(current, nextType));
-                }}
-                options={PIX_KEY_TYPE_OPTIONS}
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Chave Pix *
-              </label>
-              <input
-                type="text"
-                required
-                inputMode={pixKeyType === 'Email' || pixKeyType === 'Random' ? 'text' : 'numeric'}
-                placeholder={PIX_KEY_PLACEHOLDERS[pixKeyType]}
-                value={pixKey}
-                onChange={(e) => setPixKey(maskPixKey(e.target.value, pixKeyType))}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-white text-sm focus:ring-2 focus:ring-zinc-600 focus:outline-none font-mono"
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Nome do Recebedor (Titular da conta) *
-              </label>
-              <input
-                type="text"
-                maxLength={25}
-                required
-                placeholder="Ex: João da Silva"
-                value={receiverName}
-                onChange={(e) => setReceiverName(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-white text-sm focus:ring-2 focus:ring-zinc-600 focus:outline-none"
-              />
-              <span className="text-[11px] text-zinc-500">Até 25 caracteres, sem acentos no Pix</span>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Cidade
-              </label>
-              <div className="flex gap-2">
-                <Select
-                  ariaLabel="Estado (UF)"
-                  className="w-24 shrink-0"
-                  triggerClassName="px-3 py-2.5 text-sm rounded-xl"
-                  value={selectedUf}
-                  onChange={(value) => setUfOverride(value as UF | '')}
-                  options={UF_OPTIONS}
-                />
-                <Combobox
-                  ariaLabel="Cidade"
-                  className="flex-1 min-w-0"
-                  maxLength={15}
-                  placeholder="Ex: Sao Paulo"
-                  value={receiverCity}
-                  onChange={setCityOverride}
-                  suggestions={cityOptions}
-                />
-              </div>
-              {citySource && <span className="text-[11px] text-zinc-500">{citySource}</span>}
-            </div>
-          </div>
-        </div>
-
-        {/* Step 3: Participantes */}
-        <div className={`bg-zinc-950 rounded-xl p-4 sm:p-7 border border-zinc-800 space-y-3 sm:space-y-5 ${step === 2 ? '' : 'hidden sm:block'}`}>
-          <div className="flex flex-row items-center justify-between gap-2">
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-zinc-900 text-zinc-50 text-xs flex items-center justify-center font-bold">
-                  3
-                </span>
-                Participantes ({participants.length})
-              </h2>
-              <p className="hidden sm:block text-xs text-zinc-400">
-                Adicione entre 2 e 50 participantes.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleAddParticipant}
-              disabled={participants.length >= 50}
-              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-zinc-200 transition-colors shrink-0"
-            >
-              <Plus className="w-4 h-4 text-zinc-50" />
-              <span className="sm:hidden">Adicionar</span>
-              <span className="hidden sm:inline">Adicionar Pessoa</span>
-            </button>
-          </div>
-
-          {/* Participants list */}
-          <div className="space-y-2 sm:space-y-3">
-            {participants.map((p, index) => {
-              const equalAmount = equalShares.find((e) => e.id === p.id)?.amount;
-
-              return (
+      <form onSubmit={handleSubmit} noValidate>
+        {/* Mobile Stepper Bar (Progress bar with 3 animated segments) */}
+        <div className="lg:hidden mb-6 space-y-2">
+          <div className="grid grid-cols-3 gap-2">
+            {STEP_LABELS.map((_, i) => (
+              <div key={i} className="h-1.5 rounded-full bg-zinc-800 overflow-hidden">
                 <div
-                  key={p.id}
-                  className="p-2.5 sm:p-3.5 rounded-xl bg-zinc-900/50 border border-zinc-800 flex flex-wrap sm:flex-nowrap items-center gap-x-2 gap-y-1.5 sm:gap-3"
-                >
-                  <div className="basis-[calc(100%-2.5rem)] sm:basis-auto flex-1 min-w-0 flex items-center gap-2">
-                    <span className="text-xs font-bold text-zinc-500 w-4 sm:w-5 text-center shrink-0">
-                      {index + 1}
-                    </span>
+                  className={`h-full bg-accent transition-all duration-300 ${
+                    i <= step ? 'w-full' : 'w-0'
+                  }`}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-zinc-400 font-medium">Passo {step + 1} de {STEP_LABELS.length}</span>
+            <span className="text-zinc-200 font-semibold">{STEP_LABELS[step]}</span>
+          </div>
+        </div>
+
+        {/* Form Content: 2 Columns on desktop (lg+), 1 step at a time on mobile */}
+        <div className="lg:grid lg:grid-cols-12 lg:gap-6 lg:items-start space-y-6 lg:space-y-0">
+          {/* Left Column (approx 60%): Steps 1 (Valor) & 2 (Pix) stacked */}
+          <div className="lg:col-span-6 space-y-6 lg:space-y-4">
+            {/* Step 1 Card: Valor */}
+            <section
+              className={`p-4 sm:p-7 lg:p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-6 lg:space-y-4 ${stepClass(step === 0, slideDir)} lg:animate-none`}
+            >
+              <h2 className="flex items-center gap-3 lg:gap-2.5 text-lg lg:text-base font-semibold text-zinc-50">
+                <span className={stepBadgeCls}>1</span>
+                {STEP_LABELS[0]}
+              </h2>
+
+              {/* Big amount input is the hero of step 1 */}
+              <div className="pt-1 pb-4 sm:py-4 lg:py-2 flex flex-col items-center justify-center text-center">
+                <label htmlFor="total-amount-input" className="text-[13px] font-medium text-zinc-400 mb-2.5 lg:mb-1.5">
+                  Valor total
+                </label>
+                <div className="relative inline-flex items-baseline justify-center">
+                  <span className="text-4xl sm:text-4xl md:text-5xl font-semibold text-zinc-500 mr-2 select-none">
+                    R$
+                  </span>
+                  <input
+                    id="total-amount-input"
+                    type="text"
+                    inputMode="decimal"
+                    autoComplete="off"
+                    required
+                    placeholder="0,00"
+                    value={totalAmountStr}
+                    onChange={(e) => setTotalAmountStr(sanitizeDecimalInput(e.target.value))}
+                    className="w-52 sm:w-64 md:w-72 text-center bg-transparent border-0 border-b-2 border-zinc-800 focus:border-zinc-800! focus:shadow-none! max-sm:text-5xl! sm:text-5xl md:text-6xl font-bold text-zinc-50 tabular-nums placeholder:text-zinc-700 focus:outline-none transition-colors pb-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="split-title" className={labelCls}>Descrição</label>
+                <input
+                  id="split-title"
+                  type="text"
+                  required
+                  maxLength={80}
+                  placeholder="Ex: Churrasco de domingo"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <span className={labelCls}>Divisão</span>
+                <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-zinc-950/60 border border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => setSplitMode('Equal')}
+                    className={segCls(splitMode === 'Equal')}
+                  >
+                    Partes iguais
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSplitMode('Custom')}
+                    className={segCls(splitMode === 'Custom')}
+                  >
+                    Valores diferentes
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            {/* Step 2 Card: Pix para receber */}
+            <section
+              className={`p-4 sm:p-7 lg:p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-6 lg:space-y-4 ${stepClass(step === 1, slideDir)} lg:animate-none`}
+            >
+              <h2 className="flex items-center gap-3 lg:gap-2.5 text-lg lg:text-base font-semibold text-zinc-50">
+                <span className={stepBadgeCls}>2</span>
+                {STEP_LABELS[1]}
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-5 lg:gap-3">
+                <div>
+                  <span className={labelCls}>Tipo da chave</span>
+                  <Select
+                    ariaLabel="Tipo da chave Pix"
+                    value={pixKeyType}
+                    onChange={(value) => {
+                      const nextType = value as PixKeyType;
+                      setPixKeyType(nextType);
+                      setPixKey((current) => maskPixKey(current, nextType));
+                    }}
+                    options={PIX_KEY_TYPE_OPTIONS}
+                  />
+                </div>
+
+                <div className="sm:col-span-2 lg:col-span-1">
+                  <label htmlFor="pix-key" className={labelCls}>Chave Pix</label>
+                  <input
+                    id="pix-key"
+                    type="text"
+                    required
+                    inputMode={pixInputMode(pixKeyType)}
+                    autoComplete="off"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    placeholder={PIX_KEY_PLACEHOLDERS[pixKeyType]}
+                    value={pixKey}
+                    onChange={(e) => setPixKey(maskPixKey(e.target.value, pixKeyType))}
+                    className={`${inputCls} font-mono`}
+                  />
+                </div>
+
+                <div className="sm:col-span-3 lg:col-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-5 lg:gap-3">
+                  <div>
+                    <label htmlFor="receiver-name" className={labelCls}>Nome do titular</label>
                     <input
+                      id="receiver-name"
                       type="text"
-                      placeholder="Nome do participante"
-                      value={p.name}
-                      onChange={(e) => handleUpdateParticipant(p.id, { name: e.target.value })}
-                      className="flex-1 min-w-0 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-zinc-700 bg-zinc-950 text-white text-sm focus:ring-2 focus:ring-zinc-600 focus:outline-none"
+                      maxLength={25}
+                      required
+                      placeholder="Ex: João da Silva"
+                      value={receiverName}
+                      onChange={(e) => setReceiverName(e.target.value)}
+                      className={inputCls}
                     />
                   </div>
 
-                  {/* Remove button (top-right on mobile, last on desktop) */}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveParticipant(p.id)}
-                    disabled={participants.length <= 2}
-                    className="order-2 sm:order-4 p-1.5 sm:p-2 text-zinc-500 hover:text-rose-300 disabled:opacity-30 disabled:hover:text-zinc-500 transition-colors shrink-0"
-                    title="Remover participante"
-                    aria-label="Remover participante"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-
-                  {/* Owner checkbox */}
-                  <label className="order-3 sm:order-2 flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-medium text-zinc-400 select-none cursor-pointer sm:px-2 pl-6 sm:pl-0">
-                    <input
-                      type="checkbox"
-                      checked={p.isOwner}
-                      onChange={(e) =>
-                        handleUpdateParticipant(p.id, { isOwner: e.target.checked })
-                      }
-                      className="rounded text-zinc-50 focus:ring-zinc-600"
-                    />
-                    <span className="sm:hidden">Organizador</span>
-                    <span className="hidden sm:inline">Organizador (já pagou)</span>
-                  </label>
-
-                  {/* Mode display or input */}
-                  {splitMode === 'Equal' ? (
-                    <div className="order-4 sm:order-3 ml-auto sm:ml-0 sm:w-28 text-right sm:pr-2">
-                      <span className="text-sm font-bold text-emerald-400">
-                        {equalAmount ? formatBRL(equalAmount) : 'R$ 0,00'}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="order-4 sm:order-3 ml-auto sm:ml-0 w-28 sm:w-32">
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="R$ 0,00"
-                        value={p.amount}
-                        onChange={(e) =>
-                          handleUpdateParticipant(p.id, { amount: e.target.value })
-                        }
-                        className="w-full px-2.5 py-1 sm:py-1.5 text-right rounded-xl border border-zinc-700 bg-zinc-950 text-sm font-bold text-white focus:outline-none"
+                  <div>
+                    <span className={labelCls}>Cidade</span>
+                    <div className="flex gap-2">
+                      <Select
+                        ariaLabel="Estado (UF)"
+                        className="w-20 sm:w-24 shrink-0"
+                        triggerClassName="px-2.5 sm:px-3 py-2.5 text-sm rounded-xl"
+                        value={selectedUf}
+                        onChange={(value) => setUfOverride(value as UF | '')}
+                        options={UF_OPTIONS}
+                      />
+                      <Combobox
+                        ariaLabel="Cidade"
+                        className="flex-1 min-w-0"
+                        maxLength={15}
+                        placeholder="Ex: Sao Paulo"
+                        value={receiverCity}
+                        onChange={setCityOverride}
+                        suggestions={cityOptions}
                       />
                     </div>
-                  )}
+                    {citySource && <span className="block mt-1 text-xs text-zinc-500">{citySource}</span>}
+                  </div>
                 </div>
-              );
-            })}
+              </div>
+            </section>
           </div>
 
-          {/* Summary / validation bar */}
-          {splitMode === 'Custom' && (
-            <div className="p-4 rounded-xl bg-zinc-900 flex flex-wrap items-center justify-between text-xs font-medium gap-2">
-              <div>
-                Total distribuído:{' '}
-                <span className="font-bold text-white">
-                  {formatBRL(customSum)}
-                </span>{' '}
-                de{' '}
-                <span className="font-bold text-white">
-                  {formatBRL(totalAmount)}
-                </span>
+          {/* Right Column (approx 40%): Step 3 (Quem vai pagar) & Sticky Summary Card */}
+          <div className="lg:col-span-6 space-y-6 lg:space-y-4">
+            {/* Step 3 Card: Quem vai pagar */}
+            <section
+              className={`p-4 sm:p-7 lg:p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-5 lg:space-y-3.5 ${stepClass(step === 2, slideDir)} lg:animate-none`}
+            >
+              <div className="flex flex-col gap-3 pb-1 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-2.5 lg:gap-y-2">
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <span className={stepBadgeCls}>3</span>
+                  <h2 className="text-base sm:text-lg lg:text-base font-semibold text-zinc-50 whitespace-nowrap">
+                    {STEP_LABELS[2]}
+                  </h2>
+                </div>
+                <div className="flex items-center justify-between gap-3 lg:contents">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-800/80 border border-zinc-700/60 text-zinc-400 whitespace-nowrap">
+                    {participants.length} {participants.length === 1 ? 'pessoa' : 'pessoas'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleAddParticipant}
+                    disabled={participants.length >= 50}
+                    className="inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-xl border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 hover:border-zinc-700 text-xs font-medium text-zinc-200 transition-all active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none cursor-pointer shrink-0 lg:ml-auto"
+                    title="Adicionar pessoa"
+                  >
+                    <Plus className="w-4 h-4 text-accent" />
+                    <span className="lg:hidden xl:inline">Adicionar pessoa</span>
+                    <span className="sr-only hidden lg:inline xl:hidden">Adicionar pessoa</span>
+                  </button>
+                </div>
               </div>
-              <div
-                className={`font-bold ${
-                  Math.abs(remainingCustom) < 0.01
-                    ? 'text-emerald-400'
-                    : ' text-amber-400'
-                }`}
+
+              {/* Participant rows with avatar initials and clean layout */}
+              <div className="divide-y divide-zinc-800/80 border-y border-zinc-800/80 lg:max-h-[20.9rem] lg:overflow-y-auto lg:overscroll-contain">
+                {participants.map((p, idx) => {
+                  const equalAmount = equalShares.find((e) => e.id === p.id)?.amount;
+                  const initial = participantInitial(p, idx);
+
+                  return (
+                    <div
+                      key={p.id}
+                      className="py-3 lg:py-2 px-1 sm:px-2 flex flex-col gap-2 lg:gap-1.5 rounded-xl transition-colors hover:bg-zinc-900/30 animate-fade-in"
+                    >
+                      <div className="flex items-center gap-3">
+                        {/* Avatar-initial circle */}
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-xs shrink-0 select-none ${
+                            p.isOwner
+                              ? 'bg-accent/15 text-accent border border-accent/30'
+                              : 'bg-zinc-800 text-zinc-300 border border-zinc-700/60'
+                          }`}
+                        >
+                          {initial}
+                        </div>
+
+                        {/* Name input */}
+                        <input
+                          type="text"
+                          aria-label="Nome do participante"
+                          placeholder={p.isOwner ? 'Seu nome' : `Pessoa ${idx + 1}`}
+                          value={p.name}
+                          onChange={(e) => handleUpdateParticipant(p.id, { name: e.target.value })}
+                          className="flex-1 min-w-0 h-10 bg-transparent text-zinc-50 text-sm placeholder:text-zinc-600 focus:outline-none focus:shadow-none! focus:border-transparent!"
+                        />
+
+                        {/* Amount: Equal display or Custom input */}
+                        {splitMode === 'Equal' ? (
+                          <div className="text-right shrink-0">
+                            <Money
+                              value={equalAmount ?? 0}
+                              className="text-sm font-semibold text-zinc-200"
+                            />
+                          </div>
+                        ) : (
+                          <div className="relative shrink-0">
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              autoComplete="off"
+                              aria-label="Valor"
+                              placeholder="0,00"
+                              value={p.amount}
+                              onChange={(e) => handleUpdateParticipant(p.id, { amount: sanitizeDecimalInput(e.target.value) })}
+                              className="w-24 sm:w-28 h-9 px-2.5 text-right tabular-nums rounded-lg border border-zinc-800 bg-zinc-950 text-sm text-zinc-50 placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors"
+                            />
+                          </div>
+                        )}
+
+                        {/* Remove icon button */}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveParticipant(p.id)}
+                          disabled={participants.length <= 2}
+                          className="p-2 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-zinc-500 cursor-pointer shrink-0"
+                          aria-label="Remover participante"
+                          title="Remover participante"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Organizador checkbox */}
+                      <div className="pl-11 flex items-center">
+                        <label className="inline-flex items-center gap-2 text-xs text-zinc-400 select-none cursor-pointer hover:text-zinc-300 transition-colors py-0.5">
+                          <input
+                            type="checkbox"
+                            checked={p.isOwner}
+                            onChange={(e) => handleUpdateParticipant(p.id, { isOwner: e.target.checked })}
+                            className="w-3.5 h-3.5 rounded accent-[var(--accent)] cursor-pointer"
+                          />{' '}
+                          Organizador, já pagou
+                        </label>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {splitMode === 'Custom' && (
+                <div
+                  className={`p-3 rounded-xl border text-xs flex flex-wrap items-center justify-between gap-2 ${
+                    Math.abs(remainingCustom) < 0.01
+                      ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
+                      : 'bg-rose-500/10 border-rose-500/25 text-rose-400'
+                  }`}
+                >
+                  <span>
+                    <Money value={customSum} className="font-semibold" /> de{' '}
+                    <Money value={totalAmount} />
+                  </span>
+                  <span className="font-medium">
+                    {Math.abs(remainingCustom) < 0.01 ? (
+                      'Soma conferida'
+                    ) : (
+                      <>
+                        Faltam <Money value={remainingCustom} />
+                      </>
+                    )}
+                  </span>
+                </div>
+              )}
+
+              <div className="pt-3 border-t border-zinc-800/80 space-y-2.5 lg:hidden">
+                <TermsShortNotice />
+                <TermsConsentCheckbox id="terms-consent-mobile" />
+              </div>
+            </section>
+
+            {/* Desktop Sticky Summary Card */}
+            <div className="hidden lg:block sticky top-20 rounded-2xl bg-zinc-900/50 border border-zinc-800 p-6 lg:p-4 shadow-sm space-y-5 lg:space-y-3.5">
+              <h3 className="text-[13px] font-medium text-zinc-400">
+                Resumo
+              </h3>
+              <div className="space-y-3 lg:space-y-2">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-sm text-zinc-400">Total da conta</span>
+                  <Money value={totalAmount} className="text-2xl font-bold text-zinc-50" />
+                </div>
+                <div className="flex items-baseline justify-between text-sm py-2 border-t border-zinc-800/80">
+                  <span className="text-zinc-400">
+                    {splitMode === 'Equal' ? `Por pessoa (${participants.length})` : 'Pessoas'}
+                  </span>
+                  <span className="font-semibold text-zinc-200">
+                    {splitMode === 'Equal' ? (
+                      <Money value={equalShares[0]?.amount ?? 0} />
+                    ) : (
+                      `${participants.length} participantes`
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-zinc-800/80 space-y-2.5">
+                <TermsShortNotice />
+                <TermsConsentCheckbox id="terms-consent-desktop" />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || !termsAccepted}
+                className="w-full h-12 lg:h-11 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-base transition-all active:scale-[0.98] shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {Math.abs(remainingCustom) < 0.01
-                  ? 'Soma exata!'
-                  : `Falta distribuir: ${formatBRL(remainingCustom)}`}
-              </div>
+                {loading ? 'Criando...' : 'Criar racha'}
+              </button>
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Mobile navigation */}
-        <div className="sm:hidden flex gap-3">
-          {step > 0 && (
-            <button
-              type="button"
-              onClick={() => goToStep(step - 1)}
-              className="flex-1 py-3.5 px-4 rounded-xl border border-zinc-800 text-zinc-300 font-semibold text-sm hover:bg-zinc-900 transition-colors cursor-pointer"
-            >
-              Voltar
-            </button>
-          )}
-          {step < LAST_STEP && (
-            <button
-              type="button"
-              onClick={handleNext}
-              className="flex-[2] py-3.5 px-4 rounded-xl bg-zinc-50 hover:bg-zinc-200 text-zinc-950 font-bold text-sm transition-colors cursor-pointer"
-            >
-              Próximo
-            </button>
-          )}
-        </div>
-
-        {/* Submit Button */}
-        <div className={`pt-2 ${step === LAST_STEP ? '' : 'hidden sm:block'}`}>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-4 px-6 rounded-xl bg-zinc-50 hover:bg-zinc-200 text-zinc-950 font-bold text-base transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-          >
-            {loading ? 'Criando Racha...' : 'Criar Racha e Gerar Links com Pix'}
-          </button>
+        {/* Mobile / Tablet Sticky Action Bar */}
+        <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur-md px-4 py-2.5 lg:hidden">
+          <div className="max-w-xl mx-auto flex items-center gap-3">
+            <div className="flex flex-col leading-tight shrink-0">
+              <span className="text-xs font-medium text-zinc-400">Total</span>
+              <Money value={totalAmount} className="text-lg font-bold text-zinc-50" />
+            </div>
+            <div className="flex flex-1 gap-2">
+              {step > 0 && (
+                <button
+                  type="button"
+                  onClick={() => goToStep(step - 1)}
+                  className="flex-1 h-11 px-4 rounded-xl border border-zinc-800 text-zinc-300 font-semibold text-sm hover:bg-zinc-900 transition-colors active:scale-[0.98] cursor-pointer"
+                >
+                  Voltar
+                </button>
+              )}
+              {step < LAST_STEP ? (
+                <button
+                  key="btn-step-next"
+                  type="button"
+                  onClick={handleNext}
+                  className="flex-[2] h-11 px-5 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-[15px] transition-colors active:scale-[0.98] cursor-pointer flex items-center justify-center"
+                >
+                  Próximo
+                </button>
+              ) : (
+                <button
+                  key="btn-step-submit"
+                  type="submit"
+                  disabled={loading || !termsAccepted}
+                  className="flex-[2] h-11 px-5 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-[15px] transition-colors active:scale-[0.98] cursor-pointer flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Criando...' : 'Criar racha'}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </form>
     </div>
