@@ -14,7 +14,7 @@ interface MoneyProps {
 const nf = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 /** Valor monetário estilo app financeiro calmo: "R$" em proporção refinada, inteiros nítidos, centavos alinhados. */
-export function Money({ value, signed = false, animate = false, className = '' }: MoneyProps) {
+export function Money({ value, signed = false, animate = false, className = '' }: Readonly<MoneyProps>) {
   const [shown, setShown] = useState(animate ? 0 : value);
   const raf = useRef<number | null>(null);
 
@@ -28,7 +28,7 @@ export function Money({ value, signed = false, animate = false, className = '' }
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / duration);
       // ease-out cubic
-      const eased = 1 - Math.pow(1 - t, 3);
+      const eased = 1 - (1 - t) ** 3;
       setShown(value * eased);
       if (t < 1) raf.current = requestAnimationFrame(tick);
     };
@@ -41,8 +41,12 @@ export function Money({ value, signed = false, animate = false, className = '' }
   const abs = Math.abs(shown);
   const [int, cents] = nf.format(abs).split(',');
   const negative = value < 0;
-  const tone = signed ? (negative ? 'text-rose-400' : value > 0 ? 'text-emerald-400' : '') : '';
-  const sign = signed ? (negative ? '− ' : value > 0 ? '+ ' : '') : negative ? '− ' : '';
+  const sign = negative ? '− ' : signed && value > 0 ? '+ ' : '';
+  let tone = '';
+  if (signed) {
+    if (negative) tone = 'text-rose-400';
+    else if (value > 0) tone = 'text-emerald-400';
+  }
 
   return (
     <span className={`tabular-nums font-sans tracking-tight whitespace-nowrap ${tone} ${className}`}>

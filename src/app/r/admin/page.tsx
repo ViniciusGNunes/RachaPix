@@ -8,12 +8,12 @@ import {
   ApiError,
   SplitAdminDto,
 } from '@/lib/api';
-import { formatDateTime } from '@/lib/formatters';
+import { formatDateTime, isOverdueSince } from '@/lib/formatters';
 import { getSavedSplitToken, removeSavedSplit, saveSplit } from '@/lib/storage';
 import { absoluteUrl, splitAdminPath, splitPath } from '@/lib/routes';
 import { CopyButton } from '@/components/ui/CopyButton';
 import { Money } from '@/components/ui/Money';
-import { StatusPill, PaidProgress } from '@/components/splits/PixQrModal';
+import { ParticipantStatusPill, PaidProgress } from '@/components/splits/PixQrModal';
 import { Modal } from '@/components/ui/Modal';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { toast } from '@/components/ui/Toast';
@@ -278,8 +278,7 @@ function SplitAdminContent() {
       ? Math.min(100, Math.round((split.paidAmount / split.totalAmount) * 100))
       : 0;
 
-  const isOverdue =
-    new Date().getTime() - new Date(split.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000;
+  const isOverdue = isOverdueSince(split.createdAt);
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-24 md:pb-12 w-full space-y-6 animate-fade-up">
@@ -304,7 +303,7 @@ function SplitAdminContent() {
             </h1>
             {refreshing && (
               <span className="inline-flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />{' '}
                 Atualizando...
               </span>
             )}
@@ -388,15 +387,7 @@ function SplitAdminContent() {
                         )}
                       </p>
                       <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                        {p.paid ? (
-                          <StatusPill status="paid" />
-                        ) : p.paymentPending ? (
-                          <StatusPill status="pending" label="Aguardando confirmação" />
-                        ) : isOverdue ? (
-                          <StatusPill status="overdue" />
-                        ) : (
-                          <StatusPill status="pending" />
-                        )}
+                        <ParticipantStatusPill paid={p.paid} paymentPending={p.paymentPending} isOverdue={isOverdue} />
                         <span className="text-xs text-zinc-500">
                           {p.paidAt
                             ? formatDateTime(p.paidAt)

@@ -19,7 +19,7 @@ export function CopyButton({
   className = '',
   variant = 'outline',
   size = 'md',
-}: CopyButtonProps) {
+}: Readonly<CopyButtonProps>) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async (e: React.MouseEvent) => {
@@ -49,17 +49,19 @@ export function CopyButton({
     ghost: 'text-zinc-300 hover:bg-zinc-900',
   }[variant];
 
+  let copiedStyles = '';
+  if (copied) {
+    copiedStyles =
+      variant === 'primary'
+        ? '!bg-emerald-600 !text-white'
+        : '!border-emerald-500/40 !bg-emerald-500/10 !text-emerald-400';
+  }
+
   return (
     <button
       type="button"
       onClick={handleCopy}
-      className={`${baseStyles} ${sizeStyles} ${variantStyles} ${
-        copied
-          ? variant === 'primary'
-            ? '!bg-emerald-600 !text-white'
-            : '!border-emerald-500/40 !bg-emerald-500/10 !text-emerald-400'
-          : ''
-      } ${className}`}
+      className={`${baseStyles} ${sizeStyles} ${variantStyles} ${copiedStyles} ${className}`}
       aria-live="polite"
       title={copied ? copiedLabel : label}
     >

@@ -61,13 +61,13 @@ interface BarRow {
   color: string;
 }
 
-function BarList({ rows }: { rows: BarRow[] }) {
+function BarList({ rows }: Readonly<{ rows: BarRow[] }>) {
   const total = rows.reduce((acc, r) => acc + r.value, 0);
   const max = rows.reduce((acc, r) => Math.max(acc, r.value), 0);
   return (
     <ul className="space-y-3.5 my-auto py-2">
-      {rows.map((r, i) => (
-        <li key={`${r.label}-${i}`}>
+      {rows.map((r) => (
+        <li key={r.label}>
           <div className="flex items-baseline justify-between gap-3 text-sm">
             <span className="flex items-center gap-2 min-w-0 text-zinc-200">
               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: r.color }} />
@@ -94,7 +94,26 @@ function BarList({ rows }: { rows: BarRow[] }) {
   );
 }
 
-export function StatsCharts({ stats }: StatsChartsProps) {
+function ChartSlot({
+  empty,
+  emptyText,
+  isMobile,
+  mobile,
+  desktop,
+}: Readonly<{
+  empty: boolean;
+  emptyText: string;
+  isMobile: boolean;
+  mobile: React.ReactNode;
+  desktop: React.ReactNode;
+}>) {
+  if (empty) {
+    return <p className="text-xs text-zinc-400 my-auto text-center py-10">{emptyText}</p>;
+  }
+  return <>{isMobile ? mobile : desktop}</>;
+}
+
+export function StatsCharts({ stats }: Readonly<StatsChartsProps>) {
   const isMobile = useIsMobile();
   // Format data for Category Pie Chart
   const categoryData = (stats.byCategory || []).map((c) => ({
@@ -122,13 +141,14 @@ export function StatsCharts({ stats }: StatsChartsProps) {
         <h3 className="font-semibold text-zinc-50 text-base mb-4 tracking-tight">
           Gastos por Categoria
         </h3>
-        {categoryData.length === 0 ? (
-          <p className="text-xs text-zinc-400 my-auto text-center py-10">
-            Nenhuma despesa para exibir no período.
-          </p>
-        ) : isMobile ? (
+        <ChartSlot
+          empty={categoryData.length === 0}
+          emptyText="Nenhuma despesa para exibir no período."
+          isMobile={isMobile}
+          mobile={(
           <BarList rows={categoryData.map((c, i) => ({ label: c.name, value: c.value, color: COLORS[i % COLORS.length] }))} />
-        ) : (
+          )}
+          desktop={(
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -141,8 +161,8 @@ export function StatsCharts({ stats }: StatsChartsProps) {
                   paddingAngle={4}
                   dataKey="value"
                 >
-                  {categoryData.map((_, index) => (
-                    <Cell key={`cell-${index}`} stroke="var(--color-zinc-950)" fill={COLORS[index % COLORS.length]} />
+                  {categoryData.map((d, index) => (
+                    <Cell key={d.name} stroke="var(--color-zinc-950)" fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip {...TOOLTIP_PROPS}
@@ -152,7 +172,8 @@ export function StatsCharts({ stats }: StatsChartsProps) {
               </PieChart>
             </ResponsiveContainer>
           </div>
-        )}
+          )}
+        />
       </div>
 
       {/* Chart 3: Comparativo Pago vs Devido por Membro */}
@@ -160,11 +181,11 @@ export function StatsCharts({ stats }: StatsChartsProps) {
         <h3 className="font-semibold text-zinc-50 text-base mb-4 tracking-tight">
           Comparativo por Membro (Pago vs Devido)
         </h3>
-        {memberData.length === 0 || memberData.every((m) => m.Pago === 0 && m.Devido === 0) ? (
-          <p className="text-xs text-zinc-400 my-auto text-center py-10">
-            Nenhum membro com despesas no período.
-          </p>
-        ) : isMobile ? (
+        <ChartSlot
+          empty={memberData.every((m) => m.Pago === 0 && m.Devido === 0)}
+          emptyText="Nenhum membro com despesas no período."
+          isMobile={isMobile}
+          mobile={(
           <ul className="space-y-4 my-auto py-2">
             {memberData.map((m) => {
               const max = Math.max(m.Pago, m.Devido, 0.01);
@@ -186,7 +207,8 @@ export function StatsCharts({ stats }: StatsChartsProps) {
               );
             })}
           </ul>
-        ) : (
+          )}
+          desktop={(
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={memberData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -199,7 +221,8 @@ export function StatsCharts({ stats }: StatsChartsProps) {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        )}
+          )}
+        />
       </div>
 
       {/* Chart 3: Evolução Mensal */}
@@ -207,13 +230,14 @@ export function StatsCharts({ stats }: StatsChartsProps) {
         <h3 className="font-semibold text-zinc-50 text-base mb-4 tracking-tight">
           Gastos por Mês
         </h3>
-        {monthData.length === 0 ? (
-          <p className="text-xs text-zinc-400 my-auto text-center py-10">
-            Nenhum dado mensal registrado.
-          </p>
-        ) : isMobile ? (
+        <ChartSlot
+          empty={monthData.length === 0}
+          emptyText="Nenhum dado mensal registrado."
+          isMobile={isMobile}
+          mobile={(
           <BarList rows={monthData.map((m) => ({ label: m.month, value: m.total, color: 'var(--accent)' }))} />
-        ) : (
+          )}
+          desktop={(
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={monthData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -236,7 +260,8 @@ export function StatsCharts({ stats }: StatsChartsProps) {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        )}
+          )}
+        />
       </div>
     </div>
   );

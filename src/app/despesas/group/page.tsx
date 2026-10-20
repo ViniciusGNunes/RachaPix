@@ -144,7 +144,7 @@ const PILL_DOT: Record<PillTone, string> = {
   neutral: 'bg-zinc-500',
 };
 
-function StatusPill({ tone, children }: { tone: PillTone; children: React.ReactNode }) {
+function StatusPill({ tone, children }: Readonly<{ tone: PillTone; children: React.ReactNode }>) {
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full border text-xs font-medium px-2.5 py-0.5 ${PILL_STYLE[tone]}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${PILL_DOT[tone]}`} />
@@ -153,12 +153,16 @@ function StatusPill({ tone, children }: { tone: PillTone; children: React.ReactN
   );
 }
 
-function DayHeader({ label }: { label: string }) {
+function DayHeader({ label }: Readonly<{ label: string }>) {
   return (
     <div className="sticky top-0 z-10 pt-4 pb-2 bg-background/95 backdrop-blur-sm text-xs font-semibold uppercase tracking-wider text-zinc-400">
       {label}
     </div>
   );
+}
+
+function errorMessageOr(err: unknown, fallback: string): string {
+  return err instanceof ApiError ? err.message : fallback;
 }
 
 function getExpenseStatus(exp: ExpenseDto): { label: string; title: string; tone: PillTone } | null {
@@ -312,20 +316,30 @@ function GroupDetailContent() {
   const isAdmin = group?.isAdmin ?? false;
   const canWrite = !!me || isAdmin;
 
+  let deleteSettlementLabel = 'Confirmar Exclusão';
+  if (isDeletingSettlement) deleteSettlementLabel = 'Processando...';
+  else if (settlementToDelete?.status === 'Pending' && me === settlementToDelete.toMemberId) {
+    deleteSettlementLabel = 'Confirmar Recusa';
+  }
+
   // Load Group Details
+  const applyGroupData = useCallback((data: GroupDto) => {
+    setGroup(data);
+    saveGroup({
+      id: data.id,
+      name: data.name,
+      accessToken: data.accessToken ?? undefined,
+      adminToken: data.adminToken ?? undefined,
+    });
+    setEditGroupName(data.name);
+    setEditGroupDesc(data.description || '');
+  }, []);
+
   const loadGroup = useCallback(async () => {
     if (!groupId) return;
     try {
       const data = await api.getGroup(groupId);
-      setGroup(data);
-      saveGroup({
-        id: data.id,
-        name: data.name,
-        accessToken: data.accessToken ?? undefined,
-        adminToken: data.adminToken ?? undefined,
-      });
-      setEditGroupName(data.name);
-      setEditGroupDesc(data.description || '');
+      applyGroupData(data);
       if (data.members.length > 0) {
         setExpensePaidBy((prev) => prev || data.yourMemberId || data.members[0].id);
         setExpenseShares((prev) =>
@@ -344,28 +358,16 @@ function GroupDetailContent() {
       if (err instanceof ApiError && err.status === 404 && getGroupCredentials(groupId)?.memberToken) {
         forgetMemberIdentity(groupId);
         try {
-          const retryData = await api.getGroup(groupId);
-          setGroup(retryData);
-          saveGroup({
-            id: retryData.id,
-            name: retryData.name,
-            accessToken: retryData.accessToken ?? undefined,
-            adminToken: retryData.adminToken ?? undefined,
-          });
-          setEditGroupName(retryData.name);
-          setEditGroupDesc(retryData.description || '');
+          applyGroupData(await api.getGroup(groupId));
           setError(null);
-          return;
         } catch (retryErr: unknown) {
-          if (retryErr instanceof ApiError) setError(retryErr.message);
-          else setError('Erro ao carregar dados do grupo.');
-          return;
+          setError(errorMessageOr(retryErr, 'Erro ao carregar dados do grupo.'));
         }
+        return;
       }
-      if (err instanceof ApiError) setError(err.message);
-      else setError('Erro ao carregar dados do grupo.');
+      setError(errorMessageOr(err, 'Erro ao carregar dados do grupo.'));
     }
-  }, [groupId]);
+  }, [groupId, applyGroupData]);
 
   const checkAndResetIdentityOn404 = useCallback(
     async (err: unknown): Promise<boolean> => {
@@ -603,7 +605,7 @@ function GroupDetailContent() {
     e.preventDefault();
     setExpenseFormError(null);
 
-    const total = parseFloat(expenseAmountStr) || 0;
+    const total = Number.parseFloat(expenseAmountStr) || 0;
     if (!expenseDesc.trim()) {
       setExpenseFormError('A descrição é obrigatória.');
       return;
@@ -632,11 +634,11 @@ function GroupDetailContent() {
         percentage: null,
       }));
     } else if (expenseShareMode === 'Custom') {
-      if (expenseShares.some((s) => (parseFloat(s.amount) || 0) < 0)) {
+      if (expenseShares.some((s) => (Number.parseFloat(s.amount) || 0) < 0)) {
         setExpenseFormError('Os valores individuais não podem ser negativos.');
         return;
       }
-      const sum = expenseShares.reduce((acc, s) => acc + (parseFloat(s.amount) || 0), 0);
+      const sum = expenseShares.reduce((acc, s) => acc + (Number.parseFloat(s.amount) || 0), 0);
       if (Math.round(sum * 100) !== Math.round(total * 100)) {
         setExpenseFormError(
           `A soma dos valores individuais (${formatBRL(sum)}) deve ser igual ao total da despesa (${formatBRL(total)}).`
@@ -644,26 +646,26 @@ function GroupDetailContent() {
         return;
       }
       payloadShares = expenseShares
-        .filter((s) => (parseFloat(s.amount) || 0) > 0)
+        .filter((s) => (Number.parseFloat(s.amount) || 0) > 0)
         .map((s) => ({
           memberId: s.memberId,
-          amount: parseFloat(s.amount) || 0,
+          amount: Number.parseFloat(s.amount) || 0,
         }));
     } else if (expenseShareMode === 'Percentage') {
-      if (expenseShares.some((s) => (parseFloat(s.percentage) || 0) < 0)) {
+      if (expenseShares.some((s) => (Number.parseFloat(s.percentage) || 0) < 0)) {
         setExpenseFormError('As porcentagens não podem ser negativas.');
         return;
       }
-      const sum = expenseShares.reduce((acc, s) => acc + (parseFloat(s.percentage) || 0), 0);
+      const sum = expenseShares.reduce((acc, s) => acc + (Number.parseFloat(s.percentage) || 0), 0);
       if (Math.abs(sum - 100) > 0.01) {
         setExpenseFormError(`A soma das porcentagens deve ser 100%. Soma atual: ${sum}%.`);
         return;
       }
       payloadShares = expenseShares
-        .filter((s) => (parseFloat(s.percentage) || 0) > 0)
+        .filter((s) => (Number.parseFloat(s.percentage) || 0) > 0)
         .map((s) => ({
           memberId: s.memberId,
-          percentage: parseFloat(s.percentage) || 0,
+          percentage: Number.parseFloat(s.percentage) || 0,
         }));
     }
 
@@ -732,7 +734,7 @@ function GroupDetailContent() {
     e.preventDefault();
     setSettlementError(null);
 
-    const amount = parseFloat(settlementAmountStr) || 0;
+    const amount = Number.parseFloat(settlementAmountStr) || 0;
     if (amount <= 0) {
       setSettlementError('O valor deve ser maior que zero.');
       return;
@@ -1848,10 +1850,11 @@ function GroupDetailContent() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div className="sm:col-span-2">
-              <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+              <label htmlFor="expense-desc" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
                 Descrição *
               </label>
               <input
+                id="expense-desc"
                 type="text"
                 required
                 placeholder="Ex: Compras no Supermercado, Aluguel, Combustível"
@@ -1862,10 +1865,11 @@ function GroupDetailContent() {
             </div>
 
             <div>
-              <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+              <label htmlFor="expense-amount" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
                 Valor Total (R$) *
               </label>
               <input
+                id="expense-amount"
                 type="number"
                 inputMode="decimal"
                 step="0.01"
@@ -1879,10 +1883,11 @@ function GroupDetailContent() {
             </div>
 
             <div>
-              <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+              <label htmlFor="expense-date" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
                 Data *
               </label>
               <input
+                id="expense-date"
                 type="date"
                 required
                 value={expenseDate}
@@ -1892,9 +1897,9 @@ function GroupDetailContent() {
             </div>
 
             <div>
-              <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+              <span className="block text-[13px] font-medium text-zinc-400 mb-1.5">
                 Categoria *
-              </label>
+              </span>
               <Select
                 value={expenseCategory}
                 onChange={(value) => setExpenseCategory(value as ExpenseCategory)}
@@ -1904,9 +1909,9 @@ function GroupDetailContent() {
             </div>
 
             <div>
-              <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+              <span className="block text-[13px] font-medium text-zinc-400 mb-1.5">
                 Quem Pagou? *
-              </label>
+              </span>
               <Select
                 value={expensePaidBy}
                 onChange={(value) => setExpensePaidBy(value)}
@@ -1919,9 +1924,9 @@ function GroupDetailContent() {
           {/* Division Mode */}
           <div className="pt-2 space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-[13px] font-medium text-zinc-400">
+              <span className="text-[13px] font-medium text-zinc-400">
                 Divisão entre Membros *
-              </label>
+              </span>
               <div className="inline-flex p-1 rounded-xl bg-zinc-950/60 border border-zinc-800/80 gap-1">
                 {(['Equal', 'Custom', 'Percentage'] as ShareMode[]).map((mode) => (
                   <button
@@ -2031,10 +2036,11 @@ function GroupDetailContent() {
           </div>
 
           <div>
-            <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+            <label htmlFor="expense-notes" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
               Observações (opcional)
             </label>
             <input
+              id="expense-notes"
               type="text"
               placeholder="Ex: Compra parcelada, cupom aplicado..."
               value={expenseNotes}
@@ -2153,9 +2159,9 @@ function GroupDetailContent() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+              <span className="block text-[13px] font-medium text-zinc-400 mb-1.5">
                 Quem Pagou (Devedor) *
-              </label>
+              </span>
               <Select
                 value={settlementFrom}
                 onChange={(value) => {
@@ -2172,9 +2178,9 @@ function GroupDetailContent() {
             </div>
 
             <div>
-              <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+              <span className="block text-[13px] font-medium text-zinc-400 mb-1.5">
                 Quem Recebeu (Credor) *
-              </label>
+              </span>
               <Select
                 value={settlementTo}
                 onChange={(value) => {
@@ -2193,10 +2199,11 @@ function GroupDetailContent() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+              <label htmlFor="settlement-amount" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
                 Valor (R$) *
               </label>
               <input
+                id="settlement-amount"
                 type="number"
                 inputMode="decimal"
                 step="0.01"
@@ -2210,10 +2217,11 @@ function GroupDetailContent() {
             </div>
 
             <div>
-              <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+              <label htmlFor="settlement-date" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
                 Data *
               </label>
               <input
+                id="settlement-date"
                 type="date"
                 required
                 value={settlementDate}
@@ -2224,10 +2232,11 @@ function GroupDetailContent() {
           </div>
 
           <div>
-            <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+            <label htmlFor="settlement-notes" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
               Observações (opcional)
             </label>
             <input
+              id="settlement-notes"
               type="text"
               placeholder="Ex: Pix comprovante enviado no WhatsApp"
               value={settlementNotes}
@@ -2274,10 +2283,11 @@ function GroupDetailContent() {
           )}
 
           <div>
-            <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+            <label htmlFor="member-name" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
               Nome do Membro *
             </label>
             <input
+              id="member-name"
               type="text"
               required
               placeholder="Ex: João, Maria, Pedro"
@@ -2289,9 +2299,9 @@ function GroupDetailContent() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <div>
-              <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+              <span className="block text-[13px] font-medium text-zinc-400 mb-1.5">
                 Tipo Pix
-              </label>
+              </span>
               <Select
                 value={memberPixKeyType}
                 onChange={(value) => {
@@ -2305,10 +2315,11 @@ function GroupDetailContent() {
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+              <label htmlFor="member-pix-key" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
                 Chave Pix (opcional)
               </label>
               <input
+                id="member-pix-key"
                 type="text"
                 inputMode={memberPixKeyType === 'Email' || memberPixKeyType === 'Random' ? 'text' : 'numeric'}
                 placeholder={PIX_KEY_PLACEHOLDERS[memberPixKeyType]}
@@ -2431,10 +2442,11 @@ function GroupDetailContent() {
 
           <form onSubmit={handleSaveGroupSettings} className="space-y-4">
             <div>
-              <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+              <label htmlFor="edit-group-name" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
                 Nome do Grupo
               </label>
               <input
+                id="edit-group-name"
                 type="text"
                 required
                 value={editGroupName}
@@ -2444,10 +2456,11 @@ function GroupDetailContent() {
             </div>
 
             <div>
-              <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+              <label htmlFor="edit-group-desc" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
                 Descrição
               </label>
               <input
+                id="edit-group-desc"
                 type="text"
                 value={editGroupDesc}
                 onChange={(e) => setEditGroupDesc(e.target.value)}
@@ -2595,11 +2608,7 @@ function GroupDetailContent() {
               onClick={handleConfirmDeleteSettlement}
               className="h-11 px-5 rounded-xl border border-rose-500/40 bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 font-semibold text-sm transition-colors active:scale-[0.98] cursor-pointer disabled:opacity-50 inline-flex items-center justify-center shadow-sm"
             >
-              {isDeletingSettlement
-                ? 'Processando...'
-                : settlementToDelete?.status === 'Pending' && me === settlementToDelete?.toMemberId
-                ? 'Confirmar Recusa'
-                : 'Confirmar Exclusão'}
+              {deleteSettlementLabel}
             </button>
           </div>
         </div>

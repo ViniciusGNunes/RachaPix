@@ -30,7 +30,7 @@ const PILL_STYLES: Record<PillStatus, { pill: string; dot: string; label: string
   },
 };
 
-export function StatusPill({ status, label }: { status: PillStatus; label?: string }) {
+export function StatusPill({ status, label }: Readonly<{ status: PillStatus; label?: string }>) {
   const s = PILL_STYLES[status];
   return (
     <span
@@ -42,16 +42,27 @@ export function StatusPill({ status, label }: { status: PillStatus; label?: stri
   );
 }
 
+/** Status do participante num racha: pago > aguardando confirmação > em atraso > pendente. */
+export function ParticipantStatusPill({
+  paid,
+  paymentPending,
+  isOverdue,
+}: Readonly<{ paid: boolean; paymentPending: boolean; isOverdue: boolean }>) {
+  if (paid) return <StatusPill status="paid" />;
+  if (paymentPending) return <StatusPill status="pending" label="Aguardando confirmação" />;
+  return <StatusPill status={isOverdue ? 'overdue' : 'pending'} />;
+}
+
 /** Barra fina "X de Y pagaram" com animação suave. */
 export function PaidProgress({
   paid,
   total,
   pct,
-}: {
+}: Readonly<{
   paid: number;
   total: number;
   pct: number;
-}) {
+}>) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between text-xs sm:text-sm font-medium text-zinc-400">
@@ -60,18 +71,12 @@ export function PaidProgress({
         </span>
         <span className="tabular-nums font-semibold text-zinc-300">{pct}%</span>
       </div>
-      <div
-        className="w-full bg-zinc-800/80 h-2 rounded-full overflow-hidden"
-        role="progressbar"
-        aria-valuenow={pct}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      >
-        <div
-          className="bg-accent h-full rounded-full transition-all duration-500 ease-out"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
+      <progress
+        value={pct}
+        max={100}
+        aria-label={`${paid} de ${total} pagaram`}
+        className="block w-full h-2 appearance-none overflow-hidden rounded-full bg-zinc-800/80 [&::-webkit-progress-bar]:bg-zinc-800/80 [&::-webkit-progress-value]:bg-accent [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500 [&::-moz-progress-bar]:bg-accent [&::-moz-progress-bar]:rounded-full"
+      />
     </div>
   );
 }
@@ -104,7 +109,7 @@ export function PaymentReceipt({
   receiverName,
   participantId,
   paidAt,
-}: PaymentReceiptProps) {
+}: Readonly<PaymentReceiptProps>) {
   const [when] = React.useState(() => (paidAt ? new Date(paidAt) : new Date()));
   const dateText = when.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
   const shortId = participantId ? participantId.slice(0, 8).toUpperCase() : null;
@@ -138,8 +143,7 @@ export function PaymentReceipt({
   const rows: Array<[string, string]> = [];
   if (splitTitle) rows.push(['Racha', splitTitle]);
   if (payerName) rows.push(['Pagador', payerName]);
-  rows.push(['Recebedor', receiverName]);
-  rows.push(['Data e hora', dateText]);
+  rows.push(['Recebedor', receiverName], ['Data e hora', dateText]);
   if (shortId) rows.push(['Código', shortId]);
 
   return (
@@ -212,7 +216,7 @@ export function PixQrModal({
   splitTitle,
   payerName,
   participantId,
-}: PixQrModalProps) {
+}: Readonly<PixQrModalProps>) {
   const [copied, setCopied] = React.useState(false);
   const [showQr, setShowQr] = React.useState(false);
   const { accepted } = useTermsAccepted();

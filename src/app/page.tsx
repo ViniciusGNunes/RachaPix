@@ -28,7 +28,7 @@ export default function HomePage() {
 
     let cancelled = false;
     const recent = list.slice(0, 5);
-    Promise.allSettled(recent.map((s) => api.getSplitPublic(s.slug))).then((results) => {
+    void Promise.allSettled(recent.map((s) => api.getSplitPublic(s.slug))).then((results) => {
       if (cancelled) return;
       const map: Totals['map'] = {};
       let received = 0;

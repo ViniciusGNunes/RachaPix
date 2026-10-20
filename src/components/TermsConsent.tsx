@@ -18,7 +18,7 @@ export function useTermsAccepted(): {
   acceptTerms: () => void;
   isReady: boolean;
 } {
-  const [accepted, setAcceptedState] = useState<boolean>(false);
+  const [acceptedState, setAcceptedState] = useState<boolean>(false);
   const [isReady, setIsReady] = useState<boolean>(false);
 
   useEffect(() => {
@@ -77,13 +77,13 @@ export function useTermsAccepted(): {
     setAccepted(true);
   }, [setAccepted]);
 
-  return { accepted, setAccepted, acceptTerms, isReady };
+  return { accepted: acceptedState, setAccepted, acceptTerms, isReady };
 }
 
 /**
  * Aviso curto regulatório obrigatório em pontos de geração/visualização de Pix.
  */
-export function TermsShortNotice({ className = '' }: { className?: string }) {
+export function TermsShortNotice({ className = '' }: Readonly<{ className?: string }>) {
   return (
     <div
       role="note"
@@ -109,7 +109,7 @@ export function TermsConsentCheckbox({
   className = '',
   id: customId,
   disabled = false,
-}: TermsConsentCheckboxProps) {
+}: Readonly<TermsConsentCheckboxProps>) {
   const generatedId = useId();
   const inputId = customId || `terms-consent-${generatedId}`;
   const { accepted, setAccepted, isReady } = useTermsAccepted();
@@ -170,7 +170,7 @@ export function TermsConsentBlock({
   className = '',
   id,
   disabled,
-}: TermsConsentBlockProps) {
+}: Readonly<TermsConsentBlockProps>) {
   const { accepted, isReady } = useTermsAccepted();
 
   return (

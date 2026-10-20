@@ -97,10 +97,9 @@ export function ThemeToggle() {
   const isDark = theme === 'dark';
 
   return (
-    <div
-      role="group"
+    <fieldset
       aria-label="Tema"
-      className="inline-flex items-center p-0.5 sm:p-1 rounded-xl bg-zinc-900/60 border border-zinc-800/80 shrink-0"
+      className="m-0 inline-flex items-center p-0.5 sm:p-1 rounded-xl bg-zinc-900/60 border border-zinc-800/80 shrink-0"
     >
       <button
         type="button"
@@ -135,6 +134,6 @@ export function ThemeToggle() {
         <Moon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
         <span>Escuro</span>
       </button>
-    </div>
+    </fieldset>
   );
 }

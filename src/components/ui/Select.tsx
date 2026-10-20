@@ -142,15 +142,17 @@ function Popover({
 
   if (mobileSheet) {
     return createPortal(
-      <div
-        className="fixed inset-0 z-[100] flex items-end bg-black/60 backdrop-blur-xs animate-fade-in cursor-pointer"
-        onClick={onClose}
-        role="presentation"
-      >
+      <div className="fixed inset-0 z-[100] flex items-end animate-fade-in">
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label="Fechar"
+          onClick={onClose}
+          className="absolute inset-0 bg-black/60 backdrop-blur-xs cursor-pointer"
+        />
         <div
           ref={sheetRef}
-          className="w-full max-h-[70dvh] flex flex-col rounded-t-2xl border-t border-zinc-800 bg-zinc-950 pb-[env(safe-area-inset-bottom)] shadow-2xl animate-sheet-up cursor-default"
-          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-h-[70dvh] flex flex-col rounded-t-2xl border-t border-zinc-800 bg-zinc-950 pb-[env(safe-area-inset-bottom)] shadow-2xl animate-sheet-up cursor-default"
         >
           {/* Drag handle */}
           <div className="flex justify-center pt-2.5 shrink-0" aria-hidden="true">
@@ -174,7 +176,7 @@ function Popover({
           <ul
             ref={listRef}
             id={id}
-            role="listbox"
+            role="listbox" // NOSONAR: custom combobox, native <select> cannot be styled
             aria-label={title}
             className="flex-1 min-h-0 overflow-y-auto overscroll-contain py-1.5 px-1 pb-3"
           >
@@ -192,7 +194,7 @@ function Popover({
     <ul
       ref={listRef}
       id={id}
-      role="listbox"
+      role="listbox" // NOSONAR: custom combobox, native <select> cannot be styled
       aria-label={title}
       style={{
         position: 'fixed',

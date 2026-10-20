@@ -239,3 +239,10 @@ export function sanitizePixCity(city: string): string {
     .trim()
     .slice(0, 15);
 }
+
+const OVERDUE_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** True when `createdAt` is more than 7 days ago. */
+export function isOverdueSince(createdAt: string): boolean {
+  return Date.now() - new Date(createdAt).getTime() > OVERDUE_AFTER_MS;
+}

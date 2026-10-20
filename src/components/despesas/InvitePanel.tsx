@@ -19,7 +19,8 @@ interface InvitePanelProps {
 }
 
 export function inviteUrlFor(groupId: string, token?: string | null): string {
-  return `${absoluteUrl(groupPath(groupId))}${token ? `#t=${token}` : ''}`;
+  const hash = token ? `#t=${token}` : '';
+  return `${absoluteUrl(groupPath(groupId))}${hash}`;
 }
 
 export function InvitePanel({
@@ -29,7 +30,7 @@ export function InvitePanel({
   isAdmin,
   onRotate,
   variant = 'card',
-}: InvitePanelProps) {
+}: Readonly<InvitePanelProps>) {
   const [confirmingRotate, setConfirmingRotate] = useState(false);
   const [rotating, setRotating] = useState(false);
 

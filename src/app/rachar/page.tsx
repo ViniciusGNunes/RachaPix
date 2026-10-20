@@ -60,6 +60,24 @@ const PIX_KEY_TYPE_OPTIONS = (Object.keys(PIX_KEY_TYPE_LABELS) as PixKeyType[]).
 
 const UF_OPTIONS = [{ value: '', label: 'UF' }, ...UF_LIST.map((uf) => ({ value: uf, label: uf }))];
 
+function stepClass(active: boolean, slideDir: 'left' | 'right'): string {
+  if (!active) return 'hidden lg:block';
+  return slideDir === 'right' ? 'animate-slide-from-right' : 'animate-slide-from-left';
+}
+
+function pixInputMode(type: PixKeyType): 'email' | 'tel' | 'numeric' | 'text' {
+  if (type === 'Email') return 'email';
+  if (type === 'Phone') return 'tel';
+  if (type === 'Cpf' || type === 'Cnpj') return 'numeric';
+  return 'text';
+}
+
+function participantInitial(p: { name: string; isOwner: boolean }, idx: number): string {
+  const trimmed = p.name.trim();
+  if (trimmed) return trimmed.charAt(0).toUpperCase();
+  return p.isOwner ? 'E' : String(idx + 1);
+}
+
 interface ParticipantField {
   id: string;
   name: string;
@@ -454,13 +472,7 @@ export default function RacharPage() {
           <div className="lg:col-span-6 space-y-6 lg:space-y-4">
             {/* Step 1 Card: Valor */}
             <section
-              className={`p-4 sm:p-7 lg:p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-6 lg:space-y-4 ${
-                step === 0
-                  ? slideDir === 'right'
-                    ? 'animate-slide-from-right'
-                    : 'animate-slide-from-left'
-                  : 'hidden lg:block'
-              } lg:animate-none`}
+              className={`p-4 sm:p-7 lg:p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-6 lg:space-y-4 ${stepClass(step === 0, slideDir)} lg:animate-none`}
             >
               <h2 className="flex items-center gap-3 lg:gap-2.5 text-lg lg:text-base font-semibold text-zinc-50">
                 <span className={stepBadgeCls}>1</span>
@@ -491,8 +503,9 @@ export default function RacharPage() {
               </div>
 
               <div>
-                <label className={labelCls}>Descrição</label>
+                <label htmlFor="split-title" className={labelCls}>Descrição</label>
                 <input
+                  id="split-title"
                   type="text"
                   required
                   maxLength={80}
@@ -504,7 +517,7 @@ export default function RacharPage() {
               </div>
 
               <div>
-                <label className={labelCls}>Divisão</label>
+                <span className={labelCls}>Divisão</span>
                 <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-zinc-950/60 border border-zinc-800">
                   <button
                     type="button"
@@ -526,13 +539,7 @@ export default function RacharPage() {
 
             {/* Step 2 Card: Pix para receber */}
             <section
-              className={`p-4 sm:p-7 lg:p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-6 lg:space-y-4 ${
-                step === 1
-                  ? slideDir === 'right'
-                    ? 'animate-slide-from-right'
-                    : 'animate-slide-from-left'
-                  : 'hidden lg:block'
-              } lg:animate-none`}
+              className={`p-4 sm:p-7 lg:p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-6 lg:space-y-4 ${stepClass(step === 1, slideDir)} lg:animate-none`}
             >
               <h2 className="flex items-center gap-3 lg:gap-2.5 text-lg lg:text-base font-semibold text-zinc-50">
                 <span className={stepBadgeCls}>2</span>
@@ -541,7 +548,7 @@ export default function RacharPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-5 lg:gap-3">
                 <div>
-                  <label className={labelCls}>Tipo da chave</label>
+                  <span className={labelCls}>Tipo da chave</span>
                   <Select
                     ariaLabel="Tipo da chave Pix"
                     value={pixKeyType}
@@ -555,19 +562,12 @@ export default function RacharPage() {
                 </div>
 
                 <div className="sm:col-span-2 lg:col-span-1">
-                  <label className={labelCls}>Chave Pix</label>
+                  <label htmlFor="pix-key" className={labelCls}>Chave Pix</label>
                   <input
+                    id="pix-key"
                     type="text"
                     required
-                    inputMode={
-                      pixKeyType === 'Email'
-                        ? 'email'
-                        : pixKeyType === 'Phone'
-                          ? 'tel'
-                          : pixKeyType === 'Cpf' || pixKeyType === 'Cnpj'
-                            ? 'numeric'
-                            : 'text'
-                    }
+                    inputMode={pixInputMode(pixKeyType)}
                     autoComplete="off"
                     autoCapitalize="none"
                     autoCorrect="off"
@@ -581,8 +581,9 @@ export default function RacharPage() {
 
                 <div className="sm:col-span-3 lg:col-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-5 lg:gap-3">
                   <div>
-                    <label className={labelCls}>Nome do titular</label>
+                    <label htmlFor="receiver-name" className={labelCls}>Nome do titular</label>
                     <input
+                      id="receiver-name"
                       type="text"
                       maxLength={25}
                       required
@@ -594,7 +595,7 @@ export default function RacharPage() {
                   </div>
 
                   <div>
-                    <label className={labelCls}>Cidade</label>
+                    <span className={labelCls}>Cidade</span>
                     <div className="flex gap-2">
                       <Select
                         ariaLabel="Estado (UF)"
@@ -625,13 +626,7 @@ export default function RacharPage() {
           <div className="lg:col-span-6 space-y-6 lg:space-y-4">
             {/* Step 3 Card: Quem vai pagar */}
             <section
-              className={`p-4 sm:p-7 lg:p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-5 lg:space-y-3.5 ${
-                step === 2
-                  ? slideDir === 'right'
-                    ? 'animate-slide-from-right'
-                    : 'animate-slide-from-left'
-                  : 'hidden lg:block'
-              } lg:animate-none`}
+              className={`p-4 sm:p-7 lg:p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-5 lg:space-y-3.5 ${stepClass(step === 2, slideDir)} lg:animate-none`}
             >
               <div className="flex flex-col gap-3 pb-1 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-2.5 lg:gap-y-2">
                 <div className="flex items-center gap-2 sm:gap-2.5">
@@ -662,11 +657,7 @@ export default function RacharPage() {
               <div className="divide-y divide-zinc-800/80 border-y border-zinc-800/80 lg:max-h-[20.9rem] lg:overflow-y-auto lg:overscroll-contain">
                 {participants.map((p, idx) => {
                   const equalAmount = equalShares.find((e) => e.id === p.id)?.amount;
-                  const initial = p.name.trim()
-                    ? p.name.trim().charAt(0).toUpperCase()
-                    : p.isOwner
-                      ? 'E'
-                      : String(idx + 1);
+                  const initial = participantInitial(p, idx);
 
                   return (
                     <div
@@ -739,7 +730,7 @@ export default function RacharPage() {
                             checked={p.isOwner}
                             onChange={(e) => handleUpdateParticipant(p.id, { isOwner: e.target.checked })}
                             className="w-3.5 h-3.5 rounded accent-[var(--accent)] cursor-pointer"
-                          />
+                          />{' '}
                           Organizador, já pagou
                         </label>
                       </div>

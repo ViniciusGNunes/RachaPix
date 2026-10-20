@@ -37,7 +37,7 @@ export function Badge({
   size = 'md',
   dot = false,
   className = '',
-}: BadgeProps) {
+}: Readonly<BadgeProps>) {
   const sizeStyles = {
     sm: 'text-xs px-2 py-0.5',
     md: 'text-xs font-medium px-2.5 py-1',

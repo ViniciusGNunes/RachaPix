@@ -360,15 +360,16 @@ export default function DespesasPage() {
             <h3 className="flex items-center gap-2.5 text-sm font-semibold text-zinc-50">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/15 border border-accent/30 text-xs font-semibold text-accent">
                 1
-              </span>
+              </span>{' '}
               Dados do grupo
             </h3>
 
             <div>
-              <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+              <label htmlFor="group-name" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
                 Nome do Grupo *
               </label>
               <input
+                id="group-name"
                 type="text"
                 required
                 placeholder="Ex: Viagem Florianópolis, Apê 42, Churrasco"
@@ -379,10 +380,11 @@ export default function DespesasPage() {
             </div>
 
             <div>
-              <label className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+              <label htmlFor="group-description" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
                 Descrição (opcional)
               </label>
               <input
+                id="group-description"
                 type="text"
                 placeholder="Ex: Despesas gerais e compras coletivas"
                 value={description}
@@ -398,7 +400,7 @@ export default function DespesasPage() {
               <h3 className="flex items-center gap-2.5 text-sm font-semibold text-zinc-50">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/15 border border-accent/30 text-xs font-semibold text-accent">
                   2
-                </span>
+                </span>{' '}
                 Membros iniciais
               </h3>
               <button

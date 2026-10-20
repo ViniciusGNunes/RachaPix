@@ -179,8 +179,7 @@ export default function PrivacidadePage() {
             Os dados são mantidos enquanto a divisão ou grupo estiver em uso. O criador do grupo ou racha pode excluir registros diretamente pela interface ou solicitar a exclusão integral entrando em contato pelo e-mail{' '}
             <a href={`mailto:${EMAIL_CONTATO}`} className="text-accent hover:underline font-medium">
               {EMAIL_CONTATO}
-            </a>
-            . Dados armazenados localmente no navegador podem ser apagados pelo usuário a qualquer momento limpando os dados de navegação.
+            </a>. Dados armazenados localmente no navegador podem ser apagados pelo usuário a qualquer momento limpando os dados de navegação.
           </p>
         </section>
 

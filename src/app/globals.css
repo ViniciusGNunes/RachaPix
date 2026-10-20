@@ -293,8 +293,8 @@ html.theme-transition *::before,
 html.theme-transition *::after {
   transition: background-color 200ms var(--ease-out),
               border-color 200ms var(--ease-out),
-              color 200ms var(--ease-out) !important;
-  transition-delay: 0s !important;
+              color 200ms var(--ease-out) !important; /* NOSONAR: must beat utility transitions during theme swap */
+  transition-delay: 0s !important; /* NOSONAR */
 }
 
 /* Page enter: animate-fade-up */
@@ -482,10 +482,10 @@ html.theme-transition *::after {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important; /* NOSONAR: reduced-motion must override all animations */
+    animation-iteration-count: 1 !important; /* NOSONAR */
+    transition-duration: 0.01ms !important; /* NOSONAR */
+    scroll-behavior: auto !important; /* NOSONAR */
   }
   .animate-fade-up,
   .animate-fade-in,
@@ -497,6 +497,6 @@ html.theme-transition *::after {
   .animate-toast-slide,
   .animate-shimmer::after,
   .cursor-blink {
-    animation: none !important;
+    animation: none !important; /* NOSONAR */
   }
 }

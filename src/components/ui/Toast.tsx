@@ -68,14 +68,15 @@ export function Toaster() {
       style={{ top: 'calc(env(safe-area-inset-top) + 0.75rem)' }}
     >
       {list.map((t) => (
-        <div
+        <button
+          type="button"
           key={t.id}
-          className={`pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-xl border px-4 py-3 text-sm backdrop-blur-md cursor-pointer animate-toast-slide transition-all hover:scale-[1.01] ${styles[t.kind]}`}
+          className={`pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm backdrop-blur-md cursor-pointer animate-toast-slide transition-all hover:scale-[1.01] ${styles[t.kind]}`}
           onClick={() => dismiss(t.id)}
         >
           {icons[t.kind]}
           <span className="min-w-0 break-words font-medium">{t.message}</span>
-        </div>
+        </button>
       ))}
     </div>
   );

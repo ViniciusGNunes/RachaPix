@@ -10,13 +10,13 @@ import {
   SplitParticipantPublicDto,
   SplitPublicDto,
 } from '@/lib/api';
-import { formatBRL, formatDate } from '@/lib/formatters';
+import { formatBRL, formatDate, isOverdueSince } from '@/lib/formatters';
 import { Money } from '@/components/ui/Money';
 import { getSavedSplitToken } from '@/lib/storage';
 import { splitAdminPath } from '@/lib/routes';
 import {
   PixQrModal,
-  StatusPill,
+  ParticipantStatusPill,
   PaidProgress,
 } from '@/components/splits/PixQrModal';
 import { CopyButton } from '@/components/ui/CopyButton';
@@ -186,8 +186,7 @@ function PublicSplitContent() {
       ? Math.min(100, Math.round((split.paidAmount / split.totalAmount) * 100))
       : 0;
 
-  const isOverdue =
-    new Date().getTime() - new Date(split.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000;
+  const isOverdue = isOverdueSince(split.createdAt);
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 pb-28 md:pb-12 w-full space-y-6 animate-fade-up">
@@ -286,6 +285,15 @@ function PublicSplitContent() {
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 divide-y divide-zinc-800/60 overflow-hidden shadow-sm backdrop-blur-sm">
           {split.participants.map((p) => {
             const initial = p.name.trim().charAt(0).toUpperCase();
+            let actionLabel = 'Pagar minha parte';
+            let actionClass = 'bg-accent hover:bg-accent-hover text-accent-fg shadow-sm';
+            if (p.paid) {
+              actionLabel = 'Ver comprovante';
+              actionClass = 'border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-300';
+            } else if (p.paymentPending) {
+              actionLabel = 'Ver Pix';
+              actionClass = 'border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300';
+            }
             return (
               <div
                 key={p.id}
@@ -308,15 +316,7 @@ function PublicSplitContent() {
                       )}
                     </p>
                     <div className="mt-1">
-                      {p.paid ? (
-                        <StatusPill status="paid" />
-                      ) : p.paymentPending ? (
-                        <StatusPill status="pending" label="Aguardando confirmação" />
-                      ) : isOverdue ? (
-                        <StatusPill status="overdue" />
-                      ) : (
-                        <StatusPill status="pending" />
-                      )}
+                      <ParticipantStatusPill paid={p.paid} paymentPending={p.paymentPending} isOverdue={isOverdue} />
                     </div>
                   </div>
                 </div>
@@ -331,14 +331,10 @@ function PublicSplitContent() {
                     disabled={loadingPix || (!p.paid && !termsAccepted)}
                     onClick={() => handleSelectParticipant(p)}
                     className={`px-3.5 min-h-11 rounded-xl text-xs sm:text-sm font-semibold transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0 ${
-                      p.paid
-                        ? 'border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-300'
-                        : p.paymentPending
-                          ? 'border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300'
-                          : 'bg-accent hover:bg-accent-hover text-accent-fg shadow-sm'
+                      actionClass
                     }`}
                   >
-                    {p.paid ? 'Ver comprovante' : p.paymentPending ? 'Ver Pix' : 'Pagar minha parte'}
+                    {actionLabel}
                   </button>
                 </div>
               </div>

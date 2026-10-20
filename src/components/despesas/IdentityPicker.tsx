@@ -11,7 +11,7 @@ interface IdentityPickerProps {
   onClaim: (req: { memberId?: string; newName?: string }) => Promise<void>;
 }
 
-export function IdentityPicker({ groupName, members, onClaim }: IdentityPickerProps) {
+export function IdentityPicker({ groupName, members, onClaim }: Readonly<IdentityPickerProps>) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +72,7 @@ export function IdentityPicker({ groupName, members, onClaim }: IdentityPickerPr
             className="mt-2 flex gap-2"
             onSubmit={(e) => {
               e.preventDefault();
-              if (newName.trim()) run('new', { newName: newName.trim() });
+              if (newName.trim()) void run('new', { newName: newName.trim() });
             }}
           >
             <input
