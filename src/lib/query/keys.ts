@@ -30,11 +30,11 @@ export const groupKeys = {
   memberPix: (groupId: string, memberId: string, amount: number) =>
     [...groupKeys.all, 'memberPix', groupId, memberId, amount] as const,
   expenses: (groupId: string, filters?: ExpenseFilters) =>
-    [...groupKeys.all, 'expenses', groupId, filters] as const,
+    [...groupKeys.all, 'expenses', groupId, ...(filters ? [filters] : [])] as const,
   expense: (groupId: string, expenseId: string) =>
     [...groupKeys.all, 'expense', groupId, expenseId] as const,
   settlements: (groupId: string) => [...groupKeys.all, 'settlements', groupId] as const,
   balances: (groupId: string) => [...groupKeys.all, 'balances', groupId] as const,
   stats: (groupId: string, filters?: StatsFilters) =>
-    [...groupKeys.all, 'stats', groupId, filters] as const,
+    [...groupKeys.all, 'stats', groupId, ...(filters ? [filters] : [])] as const,
 };

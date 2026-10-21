@@ -52,13 +52,24 @@ function usePopoverPosition(open: boolean, anchorRef: React.RefObject<HTMLElemen
     const maxLeft = Math.max(VIEWPORT_MARGIN, window.innerWidth - estimatedWidth - VIEWPORT_MARGIN);
     const left = Math.max(VIEWPORT_MARGIN, Math.min(rect.left, maxLeft));
 
-    setPosition({
+    const next: Position = {
       top: placeAbove ? rect.top - 4 : rect.bottom + 4,
       left,
       width: rect.width,
       maxHeight,
       placeAbove,
-    });
+    };
+    // Keep the same object when nothing moved, so scrolling the list does not re-render or re-run effects.
+    setPosition((prev) =>
+      prev &&
+      prev.top === next.top &&
+      prev.left === next.left &&
+      prev.width === next.width &&
+      prev.maxHeight === next.maxHeight &&
+      prev.placeAbove === next.placeAbove
+        ? prev
+        : next
+    );
   }, [anchorRef]);
 
   useLayoutEffect(() => {
@@ -67,11 +78,16 @@ function usePopoverPosition(open: boolean, anchorRef: React.RefObject<HTMLElemen
       return;
     }
     update();
+    // Scroll inside the open list must not reposition the popover.
+    const onScroll = (e: Event) => {
+      if (e.target instanceof Element && e.target.closest('[role="listbox"]')) return;
+      update();
+    };
     window.addEventListener('resize', update);
-    window.addEventListener('scroll', update, true);
+    window.addEventListener('scroll', onScroll, true);
     return () => {
       window.removeEventListener('resize', update);
-      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('scroll', onScroll, true);
     };
   }, [open, update]);
 
@@ -245,6 +261,7 @@ export function Select({
   const listId = useId();
   const isMobile = useIsMobile();
   const position = usePopoverPosition(open, triggerRef);
+  const positioned = position !== null;
 
   const selectedIndex = options.findIndex((o) => o.value === value);
   const selected = selectedIndex >= 0 ? options[selectedIndex] : null;
@@ -257,7 +274,7 @@ export function Select({
     listRef.current
       ?.querySelector<HTMLElement>(`[data-index="${activeIndex}"]`)
       ?.scrollIntoView({ block: 'nearest' });
-  }, [open, activeIndex, position]);
+  }, [open, activeIndex, positioned]);
 
   const openList = () => {
     if (disabled) return;
@@ -419,6 +436,7 @@ export function Combobox({
   const listId = useId();
   const isMobile = useIsMobile();
   const position = usePopoverPosition(open, wrapperRef);
+  const positioned = position !== null;
 
   const filtered = useMemo(() => {
     const term = value.trim().toLowerCase();
@@ -436,7 +454,7 @@ export function Combobox({
     listRef.current
       ?.querySelector<HTMLElement>(`[data-index="${activeIndex}"]`)
       ?.scrollIntoView({ block: 'nearest' });
-  }, [open, activeIndex, position]);
+  }, [open, activeIndex, positioned]);
 
   const showList = open && filtered.length > 0 && position;
 

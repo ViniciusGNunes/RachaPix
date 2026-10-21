@@ -3,6 +3,7 @@
 import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/lib/api';
 import { toast } from '@/components/ui/Toast';
 import { describeThisDevice } from '@/lib/device';
@@ -14,6 +15,7 @@ import {
   useStats,
   useClaimMember,
   useRotateInvite,
+  groupKeys,
 } from '@/lib/query';
 import { useGroupSession } from '@/hooks/useGroupSession';
 import { useGroupModals } from '@/hooks/useGroupModals';
@@ -62,6 +64,7 @@ function GroupDetailContent() {
     to: filters.filterTo || undefined,
   });
 
+  const queryClient = useQueryClient();
   const claimMemberMutation = useClaimMember();
   const rotateInviteMutation = useRotateInvite();
 
@@ -76,6 +79,8 @@ function GroupDetailContent() {
         data: { ...req, label: describeThisDevice() },
       });
       saveGroup({ id: groupId, memberToken: res.memberToken, memberId: res.member.id });
+      // The mutation invalidates before the token is stored, so refetch with the new credentials.
+      await queryClient.invalidateQueries({ queryKey: groupKeys.all });
     } catch (err: unknown) {
       if (err instanceof ApiError) throw new Error(err.message);
       throw err;
