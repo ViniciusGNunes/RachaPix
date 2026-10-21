@@ -38,12 +38,12 @@ export function InvitePanel({
 
   const inviteUrl = inviteUrlFor(groupId, inviteToken);
   const adminUrl = adminToken ? inviteUrlFor(groupId, adminToken) : null;
-  const message = `Entre no meu grupo no RachaConta: ${inviteUrl}`;
+  const message = `Entre no meu grupo no RachaPix: ${inviteUrl}`;
   const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
   const handleShare = async () => {
     try {
-      await navigator.share({ title: 'Convite para o grupo', text: 'Entre no meu grupo no RachaConta', url: inviteUrl });
+      await navigator.share({ title: 'Convite para o grupo', text: 'Entre no meu grupo no RachaPix', url: inviteUrl });
     } catch {
       // user dismissed the share sheet
     }
@@ -64,35 +64,35 @@ export function InvitePanel({
 
   return (
     <section
-      className={`rounded-2xl border border-zinc-800/80 bg-zinc-900/40 ${hero ? 'p-6 sm:p-8' : 'p-4 sm:p-5'}`}
+      className={`rounded-lg border border-zinc-800 bg-zinc-900 ${hero ? 'p-5 sm:p-6' : 'p-3.5 sm:p-4'}`}
       aria-label="Convite do grupo"
     >
       <div className="flex items-start gap-3">
         <span
-          className={`shrink-0 inline-flex items-center justify-center rounded-xl bg-accent/12 text-accent border border-accent/25 ${
-            hero ? 'w-11 h-11' : 'w-9 h-9'
+          className={`shrink-0 inline-flex items-center justify-center rounded-md bg-accent/15 text-accent border border-accent/25 ${
+            hero ? 'w-10 h-10' : 'w-8 h-8'
           }`}
         >
           <Lock className={hero ? 'w-5 h-5' : 'w-4 h-4'} />
         </span>
         <div className="min-w-0">
-          <h2 className={`font-semibold text-zinc-50 ${hero ? 'text-xl' : 'text-[15px]'}`}>
+          <h2 className={`font-semibold text-zinc-50 ${hero ? 'text-lg sm:text-xl' : 'text-sm sm:text-[15px]'}`}>
             {hero ? 'Seu grupo privado está pronto' : 'Grupo privado'}
           </h2>
-          <p className="text-sm text-zinc-400 mt-1 leading-relaxed">
+          <p className="text-xs sm:text-sm text-zinc-400 mt-1 leading-relaxed">
             Só entra quem tiver o link de convite. Quem abrir o link escolhe quem é no grupo, e cada
             ação fica ligada a essa pessoa.
           </p>
         </div>
       </div>
 
-      <div className="mt-4 flex flex-col sm:flex-row gap-2">
+      <div className="mt-3.5 flex flex-col sm:flex-row gap-2">
         <input
           readOnly
           value={inviteUrl}
           onFocus={(e) => e.currentTarget.select()}
           aria-label="Link de convite"
-          className="flex-1 min-w-0 text-xs bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 font-mono text-zinc-300 truncate"
+          className="flex-1 min-w-0 h-10 sm:h-9 text-xs bg-zinc-950 border border-zinc-800 rounded-md px-3 font-mono text-zinc-300 truncate"
         />
         <div className="flex gap-2">
           <CopyButton
@@ -101,13 +101,13 @@ export function InvitePanel({
             copiedLabel="Convite copiado!"
             variant="primary"
             size="md"
-            className="flex-1 sm:flex-initial"
+            className="flex-1 sm:flex-initial h-10 sm:h-9 text-xs sm:text-sm"
           />
           <a
             href={`https://wa.me/?text=${encodeURIComponent(message)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center text-sm font-medium px-3.5 py-2 max-sm:min-h-11 rounded-xl border border-zinc-800 text-zinc-200 hover:bg-zinc-900 hover:border-zinc-700 transition cursor-pointer"
+            className="inline-flex items-center justify-center text-xs sm:text-sm font-medium px-3.5 h-10 sm:h-9 rounded-md border border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:border-zinc-700 transition cursor-pointer"
           >
             WhatsApp
           </a>
@@ -116,7 +116,7 @@ export function InvitePanel({
               type="button"
               onClick={handleShare}
               aria-label="Compartilhar convite"
-              className="inline-flex items-center justify-center w-11 rounded-xl border border-zinc-800 text-zinc-200 hover:bg-zinc-900 hover:border-zinc-700 transition cursor-pointer"
+              className="inline-flex items-center justify-center w-10 sm:w-9 h-10 sm:h-9 rounded-md border border-zinc-800 text-zinc-200 hover:bg-zinc-800 transition cursor-pointer"
             >
               <Share2 className="w-4 h-4" />
             </button>
@@ -125,9 +125,9 @@ export function InvitePanel({
       </div>
 
       {isAdmin && (
-        <div className="mt-4 pt-4 border-t border-zinc-800/80 space-y-3">
+        <div className="mt-3.5 pt-3.5 border-t border-zinc-800 space-y-2.5">
           {onRotate && (
-            <div className="flex flex-wrap items-center gap-2 text-sm">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
               {confirmingRotate ? (
                 <>
                   <span className="text-zinc-400">O link atual deixa de funcionar. Continuar?</span>
@@ -135,14 +135,14 @@ export function InvitePanel({
                     type="button"
                     onClick={handleRotate}
                     disabled={rotating}
-                    className="h-9 px-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-50 text-xs font-semibold disabled:opacity-60 cursor-pointer"
+                    className="h-8 px-2.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-50 text-xs font-semibold disabled:opacity-60 cursor-pointer"
                   >
                     {rotating ? 'Gerando...' : 'Gerar novo link'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setConfirmingRotate(false)}
-                    className="h-9 px-3 rounded-lg text-zinc-400 hover:text-zinc-200 text-xs cursor-pointer"
+                    className="h-8 px-2.5 rounded-md text-zinc-400 hover:text-zinc-200 text-xs cursor-pointer"
                   >
                     Cancelar
                   </button>
@@ -164,7 +164,7 @@ export function InvitePanel({
               <summary className="inline-flex items-center gap-1.5 cursor-pointer text-zinc-400 hover:text-zinc-200">
                 <KeyRound className="w-3.5 h-3.5" /> Link de recuperação do admin
               </summary>
-              <p className="mt-2 leading-relaxed">
+              <p className="mt-1.5 leading-relaxed">
                 Guarde este link só para você. Com ele você recupera o acesso de admin em outro aparelho.
                 Não compartilhe.
               </p>
@@ -174,7 +174,7 @@ export function InvitePanel({
                   value={adminUrl}
                   onFocus={(e) => e.currentTarget.select()}
                   aria-label="Link de recuperação do admin"
-                  className="flex-1 min-w-0 text-xs bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 font-mono text-zinc-300 truncate"
+                  className="flex-1 min-w-0 h-9 text-xs bg-zinc-950 border border-zinc-800 rounded-md px-3 font-mono text-zinc-300 truncate"
                 />
                 <CopyButton text={adminUrl} size="sm" />
               </div>

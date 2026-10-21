@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { Toaster } from '@/components/ui/Toast';
+import { QueryProvider } from '@/lib/query';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -21,7 +22,7 @@ const handjet = Handjet({
 });
 
 export const metadata: Metadata = {
-  title: 'RachaConta — Divida contas e organize despesas com Pix',
+  title: 'RachaPix — Divida contas e organize despesas com Pix',
   description:
     'Rache contas rapidamente com Pix Copia e Cola / QR Code ou gerencie despesas compartilhadas em grupos de amigos, república ou viagens.',
   manifest: `${basePath}/manifest.webmanifest`,
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
     icon: `${basePath}/icon.svg`,
     apple: `${basePath}/icon.svg`,
   },
-  appleWebApp: { capable: true, title: 'RachaConta', statusBarStyle: 'black-translucent' },
+  appleWebApp: { capable: true, title: 'RachaPix', statusBarStyle: 'black-translucent' },
 };
 
 // Aplica o tema antes da pintura (evita flash). Preferência: localStorage 'theme' = light | dark; ausente = sistema.
@@ -57,12 +58,14 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="min-h-full flex flex-col bg-zinc-950 text-zinc-100 font-sans antialiased selection:bg-accent/20 selection:text-accent">
-        <Suspense fallback={<div className="h-14 md:h-16 w-full border-b border-zinc-800" />}>
-          <Navbar />
-        </Suspense>
-        <main className="flex-1 flex flex-col">{children}</main>
-        <Footer />
-        <Toaster />
+        <QueryProvider>
+          <Suspense fallback={<div className="h-14 md:h-16 w-full border-b border-zinc-800" />}>
+            <Navbar />
+          </Suspense>
+          <main className="flex-1 flex flex-col">{children}</main>
+          <Footer />
+          <Toaster />
+        </QueryProvider>
       </body>
     </html>
   );

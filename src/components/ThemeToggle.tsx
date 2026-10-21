@@ -99,7 +99,7 @@ export function ThemeToggle() {
   return (
     <fieldset
       aria-label="Tema"
-      className="m-0 inline-flex items-center p-0.5 sm:p-1 rounded-xl bg-zinc-900/60 border border-zinc-800/80 shrink-0"
+      className="m-0 inline-flex items-center p-0.5 rounded-md bg-zinc-900 border border-zinc-800 shrink-0"
     >
       <button
         type="button"
@@ -107,9 +107,9 @@ export function ThemeToggle() {
         aria-pressed={isLight}
         aria-label="Tema claro"
         title="Tema claro"
-        className={`inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-medium transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer ${
+        className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer ${
           isLight
-            ? 'bg-zinc-800 text-zinc-100 shadow-sm font-semibold'
+            ? 'bg-zinc-800 text-zinc-100 font-medium'
             : 'text-zinc-400 hover:text-zinc-200'
         }`}
         suppressHydrationWarning
@@ -124,9 +124,9 @@ export function ThemeToggle() {
         aria-pressed={isDark}
         aria-label="Tema escuro"
         title="Tema escuro"
-        className={`inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-medium transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer ${
+        className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer ${
           isDark
-            ? 'bg-zinc-800 text-zinc-100 shadow-sm font-semibold'
+            ? 'bg-zinc-800 text-zinc-100 font-medium'
             : 'text-zinc-400 hover:text-zinc-200'
         }`}
         suppressHydrationWarning

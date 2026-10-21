@@ -46,9 +46,9 @@ function subscribe(cb: () => void) {
 }
 
 const styles: Record<ToastKind, string> = {
-  success: 'border-emerald-500/25 bg-zinc-900/95 text-zinc-100 shadow-xl shadow-emerald-950/20',
-  error: 'border-rose-500/25 bg-zinc-900/95 text-zinc-100 shadow-xl shadow-rose-950/20',
-  info: 'border-zinc-800 bg-zinc-900/95 text-zinc-100 shadow-xl shadow-black/30',
+  success: 'border-emerald-500/30 bg-zinc-900 text-zinc-100 shadow-sm',
+  error: 'border-rose-500/30 bg-zinc-900 text-zinc-100 shadow-sm',
+  info: 'border-zinc-800 bg-zinc-900 text-zinc-100 shadow-sm',
 };
 
 const icons = {
@@ -71,7 +71,7 @@ export function Toaster() {
         <button
           type="button"
           key={t.id}
-          className={`pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm backdrop-blur-md cursor-pointer animate-toast-slide transition-all hover:scale-[1.01] ${styles[t.kind]}`}
+          className={`pointer-events-auto flex w-full max-w-sm items-center gap-2.5 rounded-md border px-3.5 py-2.5 text-left text-xs sm:text-sm cursor-pointer animate-toast-slide transition-colors hover:border-zinc-700 ${styles[t.kind]}`}
           onClick={() => dismiss(t.id)}
         >
           {icons[t.kind]}

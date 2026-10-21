@@ -41,12 +41,12 @@ const AXIS_TICK = { fontSize: 11, fill: 'var(--color-zinc-400)' };
 const AXIS_LINE = { stroke: 'var(--color-zinc-800)' };
 const TOOLTIP_STYLE = {
   backgroundColor: 'var(--color-zinc-900)',
-  border: '1px solid var(--color-zinc-700)',
-  borderRadius: 12,
+  border: '1px solid var(--color-zinc-800)',
+  borderRadius: 6,
   padding: '8px 12px',
   fontSize: 12,
   color: 'var(--color-zinc-50)',
-  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
+  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
 };
 const TOOLTIP_PROPS = {
   contentStyle: TOOLTIP_STYLE,
@@ -65,7 +65,7 @@ function BarList({ rows }: Readonly<{ rows: BarRow[] }>) {
   const total = rows.reduce((acc, r) => acc + r.value, 0);
   const max = rows.reduce((acc, r) => Math.max(acc, r.value), 0);
   return (
-    <ul className="space-y-3.5 my-auto py-2">
+    <ul className="space-y-3 my-auto py-1.5">
       {rows.map((r) => (
         <li key={r.label}>
           <div className="flex items-baseline justify-between gap-3 text-sm">
@@ -82,7 +82,7 @@ function BarList({ rows }: Readonly<{ rows: BarRow[] }>) {
               )}
             </span>
           </div>
-          <div className="mt-1.5 h-2 rounded-full bg-zinc-800/80 overflow-hidden">
+          <div className="mt-1 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-300"
               style={{ width: `${max > 0 ? (r.value / max) * 100 : 0}%`, backgroundColor: r.color }}
@@ -135,10 +135,10 @@ export function StatsCharts({ stats }: Readonly<StatsChartsProps>) {
   }));
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 w-full">
       {/* Chart 1: Gastos por Categoria */}
-      <div className="bg-zinc-900/40 p-5 sm:p-6 rounded-2xl border border-zinc-800/80 flex flex-col shadow-sm">
-        <h3 className="font-semibold text-zinc-50 text-base mb-4 tracking-tight">
+      <div className="bg-zinc-900 p-4 sm:p-5 rounded-lg border border-zinc-800 flex flex-col">
+        <h3 className="font-semibold text-zinc-50 text-sm sm:text-base mb-3 tracking-tight">
           Gastos por Categoria
         </h3>
         <ChartSlot
@@ -176,9 +176,9 @@ export function StatsCharts({ stats }: Readonly<StatsChartsProps>) {
         />
       </div>
 
-      {/* Chart 3: Comparativo Pago vs Devido por Membro */}
-      <div className="bg-zinc-900/40 p-5 sm:p-6 rounded-2xl border border-zinc-800/80 flex flex-col shadow-sm">
-        <h3 className="font-semibold text-zinc-50 text-base mb-4 tracking-tight">
+      {/* Chart 2: Comparativo Pago vs Devido por Membro */}
+      <div className="bg-zinc-900 p-4 sm:p-5 rounded-lg border border-zinc-800 flex flex-col">
+        <h3 className="font-semibold text-zinc-50 text-sm sm:text-base mb-3 tracking-tight">
           Comparativo por Membro (Pago vs Devido)
         </h3>
         <ChartSlot
@@ -186,11 +186,11 @@ export function StatsCharts({ stats }: Readonly<StatsChartsProps>) {
           emptyText="Nenhum membro com despesas no período."
           isMobile={isMobile}
           mobile={(
-          <ul className="space-y-4 my-auto py-2">
+          <ul className="space-y-3 my-auto py-1.5">
             {memberData.map((m) => {
               const max = Math.max(m.Pago, m.Devido, 0.01);
               return (
-                <li key={m.name} className="space-y-1.5">
+                <li key={m.name} className="space-y-1">
                   <p className="text-sm font-semibold text-zinc-200 truncate">{m.name}</p>
                   {([['Pago', m.Pago, 'var(--accent)'], ['Devido', m.Devido, 'var(--color-amber-400)']] as const).map(([lbl, val, color]) => (
                     <div key={lbl}>
@@ -198,7 +198,7 @@ export function StatsCharts({ stats }: Readonly<StatsChartsProps>) {
                         <span>{lbl}</span>
                         <span className="tabular-nums text-zinc-200"><Money value={val} /></span>
                       </div>
-                      <div className="mt-1 h-2 rounded-full bg-zinc-800/80 overflow-hidden">
+                      <div className="mt-0.5 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
                         <div className="h-full rounded-full transition-all duration-300" style={{ width: `${(val / max) * 100}%`, backgroundColor: color }} />
                       </div>
                     </div>
@@ -216,8 +216,8 @@ export function StatsCharts({ stats }: Readonly<StatsChartsProps>) {
                 <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} tickFormatter={(val) => `R$${val}`} />
                 <Tooltip {...TOOLTIP_PROPS} formatter={(value: unknown) => [formatBRL(Number(value) || 0)]} />
                 <Legend iconSize={8} wrapperStyle={{ fontSize: '11px', color: 'var(--color-zinc-400)' }} />
-                <Bar dataKey="Pago" fill="var(--accent)" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="Devido" fill="var(--color-amber-400)" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="Pago" fill="var(--accent)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Devido" fill="var(--color-amber-400)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -226,8 +226,8 @@ export function StatsCharts({ stats }: Readonly<StatsChartsProps>) {
       </div>
 
       {/* Chart 3: Evolução Mensal */}
-      <div className="bg-zinc-900/40 p-5 sm:p-6 rounded-2xl border border-zinc-800/80 flex flex-col shadow-sm md:col-span-2">
-        <h3 className="font-semibold text-zinc-50 text-base mb-4 tracking-tight">
+      <div className="bg-zinc-900 p-4 sm:p-5 rounded-lg border border-zinc-800 flex flex-col md:col-span-2">
+        <h3 className="font-semibold text-zinc-50 text-sm sm:text-base mb-3 tracking-tight">
           Gastos por Mês
         </h3>
         <ChartSlot

@@ -34,16 +34,16 @@ export function CopyButton({
   };
 
   const baseStyles =
-    'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-150 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer';
+    'inline-flex items-center justify-center font-medium rounded-md transition-all duration-150 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer';
 
   const sizeStyles = {
-    sm: 'text-xs px-2.5 py-1.5 gap-1.5 max-sm:min-h-11',
-    md: 'text-sm px-3.5 py-2 gap-2 max-sm:min-h-11',
-    lg: 'text-base px-4 py-2.5 gap-2 max-sm:min-h-11',
+    sm: 'h-8 text-xs px-2.5 gap-1.5 max-sm:h-10',
+    md: 'h-9 text-xs sm:text-sm px-3 gap-1.5 max-sm:h-11',
+    lg: 'h-9 sm:h-10 text-sm px-3.5 gap-2 max-sm:h-11',
   }[size];
 
   const variantStyles = {
-    primary: 'bg-accent text-accent-fg hover:bg-accent-hover shadow-sm',
+    primary: 'bg-accent text-accent-fg hover:bg-accent-hover',
     secondary: 'bg-zinc-900 text-zinc-100 hover:bg-zinc-800 border border-zinc-800',
     outline: 'border border-zinc-800 text-zinc-200 hover:bg-zinc-900 hover:border-zinc-700',
     ghost: 'text-zinc-300 hover:bg-zinc-900',

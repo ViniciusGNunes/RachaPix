@@ -28,9 +28,9 @@ interface Position {
 
 const VIEWPORT_MARGIN = 8;
 const MAX_LIST_HEIGHT = 260;
-const OPTION_BASE = 'flex items-center justify-between gap-2 cursor-pointer select-none text-zinc-300 rounded-lg mx-1 my-0.5 transition-colors';
+const OPTION_BASE = 'flex items-center justify-between gap-2 cursor-pointer select-none text-zinc-300 rounded-md mx-1 my-0.5 transition-colors';
 const optionClass = (mobile: boolean) =>
-  `${OPTION_BASE} ${mobile ? 'px-4 py-3 text-base' : 'px-3 py-2 text-sm'}`;
+  `${OPTION_BASE} ${mobile ? 'px-3.5 py-2.5 text-base' : 'px-2.5 py-1.5 text-xs sm:text-sm'}`;
 
 function usePopoverPosition(open: boolean, anchorRef: React.RefObject<HTMLElement | null>): Position | null {
   const [position, setPosition] = useState<Position | null>(null);
@@ -148,11 +148,11 @@ function Popover({
           tabIndex={-1}
           aria-label="Fechar"
           onClick={onClose}
-          className="absolute inset-0 bg-black/60 backdrop-blur-xs cursor-pointer"
+          className="absolute inset-0 bg-black/70 cursor-pointer"
         />
         <div
           ref={sheetRef}
-          className="relative w-full max-h-[70dvh] flex flex-col rounded-t-2xl border-t border-zinc-800 bg-zinc-950 pb-[env(safe-area-inset-bottom)] shadow-2xl animate-sheet-up cursor-default"
+          className="relative w-full max-h-[70dvh] flex flex-col rounded-t-lg border-t border-zinc-800 bg-zinc-950 pb-[env(safe-area-inset-bottom)] shadow-sm animate-sheet-up cursor-default"
         >
           {/* Drag handle */}
           <div className="flex justify-center pt-2.5 shrink-0" aria-hidden="true">
@@ -166,7 +166,7 @@ function Popover({
               type="button"
               onClick={onClose}
               aria-label="Fechar"
-              className="p-1.5 -mr-1.5 rounded-xl text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+              className="p-1.5 -mr-1 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -207,7 +207,7 @@ function Popover({
           ? { bottom: window.innerHeight - position.top }
           : { top: position.top }),
       }}
-      className="z-[100] overflow-y-auto py-1.5 px-1 rounded-xl border border-zinc-800 bg-zinc-900/95 backdrop-blur-md shadow-xl animate-fade-in"
+      className="z-[100] overflow-y-auto py-1 px-1 rounded-md border border-zinc-800 bg-zinc-900 shadow-sm animate-fade-in"
     >
       {children}
     </ul>,
@@ -340,7 +340,7 @@ export function Select({
         onKeyDown={handleKeyDown}
         className={`w-full flex items-center justify-between gap-2 border bg-zinc-900 text-left text-zinc-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer max-sm:min-h-11 ${
           open ? 'border-accent' : 'border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/90'
-        } ${triggerClassName || 'px-3.5 py-2.5 text-sm rounded-xl'}`}
+        } ${triggerClassName || 'h-9 px-3 text-sm rounded-md max-sm:h-11 max-sm:text-base'}`}
       >
         <span className={`truncate ${selected ? '' : 'text-zinc-400'}`}>
           {selected ? selected.label : (placeholder ?? 'Selecione')}
@@ -502,8 +502,8 @@ export function Combobox({
         }}
         onFocus={() => setOpen(true)}
         onKeyDown={handleKeyDown}
-        className={`w-full min-w-0 border border-zinc-800 bg-zinc-900 text-zinc-50 placeholder:text-zinc-500 transition-all hover:border-zinc-700 focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent max-sm:min-h-11 max-sm:text-base ${
-          inputClassName || 'px-3.5 py-2.5 text-sm rounded-xl'
+        className={`w-full min-w-0 border border-zinc-800 bg-zinc-900 text-zinc-50 placeholder:text-zinc-400 transition-all hover:border-zinc-700 focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent max-sm:min-h-11 max-sm:text-base ${
+          inputClassName || 'h-9 px-3 text-sm rounded-md max-sm:h-11 max-sm:text-base'
         }`}
       />
 

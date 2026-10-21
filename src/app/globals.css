@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* RachaConta — Calm Fintech theme.
+/* RachaPix — Calm Fintech theme.
    Modo definido por html[data-theme='light'|'dark']; sem atributo = escuro. */
 
 :root {
@@ -20,8 +20,8 @@
 
   /* Soft card and focus shadows */
   --focus-shadow: 0 0 0 2px rgba(52, 211, 153, 0.4);
-  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.04);
-  --card-shadow-elevated: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --card-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  --card-shadow-elevated: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
 
   /* Cool slate zinc scale */
   --color-zinc-50: #f5f7fa;
@@ -77,12 +77,12 @@
   --color-purple-950: #3b0764;
 
   /* Radii */
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 20px;
-  --radius-3xl: 28px;
+  --radius-sm: 6px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+  --radius-2xl: 8px;
+  --radius-3xl: 8px;
 
   /* Motion tokens */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -105,8 +105,8 @@
   --scrollbar-thumb-hover: #94a3b8;
 
   --focus-shadow: 0 0 0 2px rgba(5, 150, 105, 0.35);
-  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  --card-shadow-elevated: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  --card-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --card-shadow-elevated: 0 1px 3px 0 rgba(0, 0, 0, 0.08);
 
   --color-zinc-50: #0f172a;
   --color-zinc-100: #1e293b;
@@ -256,7 +256,8 @@ h2 {
 
 /* Cards subtle shadow */
 .rounded-xl.border,
-.rounded-2xl.border {
+.rounded-md.border,
+.rounded-lg.border {
   box-shadow: var(--card-shadow);
 }
 
@@ -267,6 +268,13 @@ textarea:focus {
   outline: none;
   box-shadow: var(--focus-shadow);
   border-color: var(--accent);
+}
+
+/* Placeholders: same family and weight in every field (size follows the field) */
+input::placeholder,
+textarea::placeholder {
+  font-family: var(--font-sans);
+  font-weight: 400;
 }
 
 /* Active tab in bottom bar */

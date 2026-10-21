@@ -1,6 +1,6 @@
 {
-  "name": "RachaConta",
-  "short_name": "RachaConta",
+  "name": "RachaPix",
+  "short_name": "RachaPix",
   "description": "Divida contas e organize despesas com Pix",
   "start_url": ".",
   "scope": ".",

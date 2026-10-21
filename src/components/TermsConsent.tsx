@@ -87,9 +87,9 @@ export function TermsShortNotice({ className = '' }: Readonly<{ className?: stri
   return (
     <div
       role="note"
-      className={`rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-3 text-xs leading-relaxed text-zinc-400 flex items-start gap-2.5 ${className}`}
+      className={`rounded-md border border-zinc-800 bg-zinc-900/70 p-2.5 text-xs leading-relaxed text-zinc-400 flex items-start gap-2.5 ${className}`}
     >
-      <Info className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" aria-hidden="true" />
+      <Info className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" aria-hidden="true" />
       <span>{SHORT_LEGAL_NOTICE}</span>
     </div>
   );
@@ -127,7 +127,7 @@ export function TermsConsentCheckbox({
         checked={isReady && accepted}
         onChange={(e) => setAccepted(e.target.checked)}
         disabled={disabled}
-        className="mt-0.5 h-4 w-4 min-h-0 shrink-0 appearance-none rounded-[3px] border border-zinc-600 bg-zinc-950 bg-center bg-no-repeat cursor-pointer transition-colors checked:border-accent checked:bg-accent checked:bg-[url('data:image/svg+xml;utf8,<svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2016%2016%22%20fill=%22none%22%20stroke=%22white%22%20stroke-width=%222.5%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22><path%20d=%22M3.5%208.5l3%203%206-7%22/></svg>')] focus:shadow-none! focus:ring-0! focus:outline-none! focus:border-zinc-600! checked:focus:border-accent!"
+        className="mt-0.5 h-4 w-4 min-h-0 shrink-0 appearance-none rounded-[3px] border border-zinc-500 bg-zinc-950 bg-center bg-no-repeat cursor-pointer transition-colors checked:border-accent checked:bg-accent checked:bg-[url('data:image/svg+xml;utf8,<svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2016%2016%22%20fill=%22none%22%20stroke=%22white%22%20stroke-width=%222.5%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22><path%20d=%22M3.5%208.5l3%203%206-7%22/></svg>')] focus:shadow-none! focus:ring-0! focus:outline-none! focus:border-zinc-500! checked:focus:border-accent!"
       />
       <span className="leading-snug">
         Li e aceito os{' '}
