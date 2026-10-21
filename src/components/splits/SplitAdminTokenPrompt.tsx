@@ -14,7 +14,7 @@ export function SplitAdminTokenPrompt({
   inputToken,
   setInputToken,
   onSubmit,
-}: SplitAdminTokenPromptProps) {
+}: Readonly<SplitAdminTokenPromptProps>) {
   return (
     <div className="max-w-md mx-auto px-4 py-12 sm:py-20 animate-fade-up">
       <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-5 sm:p-6 space-y-5">

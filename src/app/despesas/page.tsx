@@ -32,19 +32,17 @@ export default function DespesasPage() {
     handleCreateGroup,
   } = useLobbyCreateGroup(reloadSaved);
 
+  let content: React.ReactNode;
+  if (loading) content = <LobbySkeleton />;
+  else if (error) content = <LobbyErrorAlert error={error} onRetry={() => void refetch()} />;
+  else if (groups.length === 0) content = <LobbyEmptyState onOpenCreateModal={() => setIsModalOpen(true)} />;
+  else content = <LobbyGroupGrid groups={groups} />;
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 lg:pt-4 pb-28 lg:pb-12 w-full space-y-6 animate-fade-up">
       <LobbyHeader onOpenCreateModal={() => setIsModalOpen(true)} />
 
-      {loading ? (
-        <LobbySkeleton />
-      ) : error ? (
-        <LobbyErrorAlert error={error} onRetry={() => void refetch()} />
-      ) : groups.length === 0 ? (
-        <LobbyEmptyState onOpenCreateModal={() => setIsModalOpen(true)} />
-      ) : (
-        <LobbyGroupGrid groups={groups} />
-      )}
+      {content}
 
       <LobbyCreatedModal
         createdGroup={createdGroup}

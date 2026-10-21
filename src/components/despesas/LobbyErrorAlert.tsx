@@ -6,7 +6,7 @@ interface LobbyErrorAlertProps {
   onRetry: () => void;
 }
 
-export function LobbyErrorAlert({ error, onRetry }: LobbyErrorAlertProps) {
+export function LobbyErrorAlert({ error, onRetry }: Readonly<LobbyErrorAlertProps>) {
   return (
     <div className="p-4 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm flex items-start gap-3">
       <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />

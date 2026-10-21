@@ -14,6 +14,11 @@ interface DevicesPanelProps {
   inviteToken?: string | null;
 }
 
+function generateButtonLabel(generating: boolean, hasLink: boolean): string {
+  if (generating) return 'Gerando...';
+  return hasLink ? 'Gerar novo código' : 'Conectar outro aparelho';
+}
+
 function formatRemaining(ms: number): string {
   const total = Math.max(0, Math.ceil(ms / 1000));
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
@@ -130,7 +135,7 @@ export function DevicesPanel({ groupId, inviteToken }: Readonly<DevicesPanelProp
           className="inline-flex items-center justify-center gap-1.5 h-10 sm:h-9 px-3.5 rounded-md bg-accent hover:bg-accent-hover text-accent-fg text-sm font-medium disabled:opacity-50 transition-colors cursor-pointer shadow-sm"
         >
           <QrCode className="w-4 h-4" />
-          {generating ? 'Gerando...' : link ? 'Gerar novo código' : 'Conectar outro aparelho'}
+          {generateButtonLabel(generating, !!link)}
         </button>
       )}
 

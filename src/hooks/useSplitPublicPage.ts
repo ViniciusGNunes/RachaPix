@@ -115,11 +115,13 @@ export function useSplitPublicPage() {
     return split ? isOverdueSince(split.createdAt) : false;
   }, [split]);
 
-  const errorMessage = queryError
-    ? queryError instanceof ApiError
-      ? queryError.message
-      : 'Não foi possível carregar as informações deste racha.'
-    : null;
+  let errorMessage: string | null = null;
+  if (queryError) {
+    errorMessage =
+      queryError instanceof ApiError
+        ? queryError.message
+        : 'Não foi possível carregar as informações deste racha.';
+  }
 
   return {
     slug,

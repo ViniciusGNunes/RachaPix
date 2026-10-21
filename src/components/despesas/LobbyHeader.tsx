@@ -5,7 +5,7 @@ interface LobbyHeaderProps {
   onOpenCreateModal: () => void;
 }
 
-export function LobbyHeader({ onOpenCreateModal }: LobbyHeaderProps) {
+export function LobbyHeader({ onOpenCreateModal }: Readonly<LobbyHeaderProps>) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>

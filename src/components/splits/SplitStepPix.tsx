@@ -55,13 +55,10 @@ export function SplitStepPix({
   setCityOverride,
   cityOptions,
   citySource,
-}: SplitStepPixProps) {
+}: Readonly<SplitStepPixProps>) {
   const active = step === 1;
-  const animClass = !active
-    ? 'hidden lg:block'
-    : slideDir === 'right'
-    ? 'animate-slide-from-right'
-    : 'animate-slide-from-left';
+  let animClass = 'hidden lg:block';
+  if (active) animClass = slideDir === 'right' ? 'animate-slide-from-right' : 'animate-slide-from-left';
 
   const inputCls =
     'w-full h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-50 text-sm placeholder:text-zinc-400 focus:border-accent focus:outline-none transition-colors';
@@ -74,7 +71,7 @@ export function SplitStepPix({
       className={`p-4 sm:p-5 lg:p-4 rounded-lg bg-zinc-900 border border-zinc-800 space-y-4 ${animClass} lg:animate-none`}
     >
       <h2 className="flex items-center gap-2.5 text-base font-semibold text-zinc-50">
-        <span className={stepBadgeCls}>2</span>
+        <span className={stepBadgeCls}>2</span>{' '}
         Pix para receber
       </h2>
 

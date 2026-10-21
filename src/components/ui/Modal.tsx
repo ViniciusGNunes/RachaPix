@@ -19,7 +19,7 @@ export function Modal({
   description,
   children,
   maxWidth = 'lg',
-}: ModalProps) {
+}: Readonly<ModalProps>) {
   const previousActiveElement = useRef<HTMLElement | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
@@ -62,18 +62,16 @@ export function Modal({
         if (focusables.length === 0) return;
 
         const firstElement = focusables[0];
-        const lastElement = focusables[focusables.length - 1];
+        const lastElement = focusables.at(-1)!;
 
         if (e.shiftKey) {
           if (document.activeElement === firstElement) {
             lastElement.focus();
             e.preventDefault();
           }
-        } else {
-          if (document.activeElement === lastElement) {
-            firstElement.focus();
-            e.preventDefault();
-          }
+        } else if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
         }
       }
     };
@@ -101,17 +99,20 @@ export function Modal({
   }[maxWidth];
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/70 animate-fade-in sm:overflow-y-auto"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-    >
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/70 animate-fade-in sm:overflow-y-auto">
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-label="Fechar clicando fora"
+        onClick={onClose}
+        className="absolute inset-0 h-full w-full cursor-default"
+      />
       <div
         ref={modalRef}
-        className={`w-full ${maxWidthClasses} bg-zinc-950 rounded-t-lg sm:rounded-lg border border-zinc-800 overflow-hidden max-h-[92dvh] sm:max-h-none flex flex-col animate-sheet-up sm:animate-modal-pop shadow-sm sm:my-8`}
-        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        className={`relative w-full ${maxWidthClasses} bg-zinc-950 rounded-t-lg sm:rounded-lg border border-zinc-800 overflow-hidden max-h-[92dvh] sm:max-h-none flex flex-col animate-sheet-up sm:animate-modal-pop shadow-sm sm:my-8`}
       >
         <div className="sm:hidden mx-auto mt-2.5 h-1 w-10 shrink-0 rounded-full bg-zinc-700" aria-hidden="true" />
         <div className="flex items-start justify-between p-3.5 sm:p-4 border-b border-zinc-800 shrink-0">

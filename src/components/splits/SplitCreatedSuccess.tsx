@@ -10,7 +10,7 @@ interface SplitCreatedSuccessProps {
   createdSplit: SplitAdminDto;
 }
 
-export function SplitCreatedSuccess({ createdSplit }: SplitCreatedSuccessProps) {
+export function SplitCreatedSuccess({ createdSplit }: Readonly<SplitCreatedSuccessProps>) {
   const publicUrl = absoluteUrl(splitPath(createdSplit.slug));
   const adminUrl = absoluteUrl(splitAdminPath(createdSplit.slug, createdSplit.adminToken));
 

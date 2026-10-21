@@ -7,7 +7,7 @@ interface SplitHomeTotalsProps {
   count: number;
 }
 
-export function SplitHomeTotals({ totals, count }: SplitHomeTotalsProps) {
+export function SplitHomeTotals({ totals, count }: Readonly<SplitHomeTotalsProps>) {
   return (
     <section className="p-4 sm:p-5 rounded-md bg-zinc-900/30 border border-zinc-800 space-y-1.5">
       <p className="text-xs font-medium text-zinc-400">Falta receber</p>

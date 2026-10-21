@@ -128,14 +128,13 @@ function GroupDetailContent() {
       {/* Tabs Navigation */}
       <div className="flex items-center p-1 rounded-md bg-zinc-900 border border-zinc-800 overflow-x-auto gap-1">
         {(['expenses', 'balances', 'settlements', 'stats', 'members'] as TabType[]).map((tab) => {
-          const suffix =
-            tab === 'expenses'
-              ? ` (${expenses.length})`
-              : tab === 'settlements'
-              ? ` (${settlements.length})`
-              : tab === 'members'
-              ? ` (${group.members.length})`
-              : '';
+          const counts: Partial<Record<TabType, number>> = {
+            expenses: expenses.length,
+            settlements: settlements.length,
+            members: group.members.length,
+          };
+          const count = counts[tab];
+          const suffix = count === undefined ? '' : ` (${count})`;
           return (
             <button
               key={tab}

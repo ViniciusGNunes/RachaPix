@@ -1,7 +1,7 @@
 import { ExpenseCategory, PixKeyType } from './api';
 
 export function formatBRL(amount: number | null | undefined): string {
-  if (amount === null || amount === undefined || isNaN(amount)) {
+  if (amount === null || amount === undefined || Number.isNaN(amount)) {
     return 'R$ 0,00';
   }
   return new Intl.NumberFormat('pt-BR', {
@@ -21,7 +21,7 @@ export function formatDate(dateString: string | null | undefined): string {
   }
   try {
     const d = new Date(dateString);
-    if (isNaN(d.getTime())) return dateString;
+    if (Number.isNaN(d.getTime())) return dateString;
     return new Intl.DateTimeFormat('pt-BR').format(d);
   } catch {
     return dateString;
@@ -32,7 +32,7 @@ export function formatDateTime(dateString: string | null | undefined): string {
   if (!dateString) return '';
   try {
     const d = new Date(dateString);
-    if (isNaN(d.getTime())) return dateString;
+    if (Number.isNaN(d.getTime())) return dateString;
     return new Intl.DateTimeFormat('pt-BR', {
       dateStyle: 'short',
       timeStyle: 'short',
@@ -198,7 +198,7 @@ const STATE_DDDS: Record<keyof typeof STATE_CAPITALS, string[]> = {
 
 export type UF = keyof typeof STATE_CAPITALS;
 
-export const UF_LIST = Object.keys(STATE_CAPITALS).sort() as UF[];
+export const UF_LIST = (Object.keys(STATE_CAPITALS) as UF[]).sort((a, b) => a.localeCompare(b));
 
 const DDD_UF = new Map<string, UF>(
   (Object.keys(STATE_DDDS) as UF[]).flatMap((uf) =>

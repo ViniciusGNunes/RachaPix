@@ -10,7 +10,7 @@ interface ErrorProps {
   reset?: () => void;
 }
 
-export default function ErrorBoundary({ error, retry, reset }: ErrorProps) {
+export default function ErrorBoundary({ error, retry, reset }: Readonly<ErrorProps>) {
   useEffect(() => {
     console.error('Unhandled route error:', error);
   }, [error]);

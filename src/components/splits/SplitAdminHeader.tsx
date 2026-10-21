@@ -22,7 +22,7 @@ export function SplitAdminHeader({
   progressPct,
   publicUrl,
   onOpenDeleteModal,
-}: SplitAdminHeaderProps) {
+}: Readonly<SplitAdminHeaderProps>) {
   return (
     <header className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 sm:p-5 space-y-4">
       <div className="space-y-1">

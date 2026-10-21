@@ -5,7 +5,7 @@ interface LobbyEmptyStateProps {
   onOpenCreateModal: () => void;
 }
 
-export function LobbyEmptyState({ onOpenCreateModal }: LobbyEmptyStateProps) {
+export function LobbyEmptyState({ onOpenCreateModal }: Readonly<LobbyEmptyStateProps>) {
   return (
     <div className="p-6 sm:p-8 text-center flex flex-col items-center max-w-md mx-auto rounded-lg bg-zinc-900 border border-zinc-800">
       <div className="w-10 h-10 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 mb-3.5">

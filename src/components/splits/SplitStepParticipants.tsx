@@ -40,13 +40,10 @@ export function SplitStepParticipants({
   handleAddParticipant,
   handleRemoveParticipant,
   handleUpdateParticipant,
-}: SplitStepParticipantsProps) {
+}: Readonly<SplitStepParticipantsProps>) {
   const active = step === 2;
-  const animClass = !active
-    ? 'hidden lg:block'
-    : slideDir === 'right'
-    ? 'animate-slide-from-right'
-    : 'animate-slide-from-left';
+  let animClass = 'hidden lg:block';
+  if (active) animClass = slideDir === 'right' ? 'animate-slide-from-right' : 'animate-slide-from-left';
 
   const stepBadgeCls =
     'flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/15 border border-accent/30 text-xs font-semibold text-accent';

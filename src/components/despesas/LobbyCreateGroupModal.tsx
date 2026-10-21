@@ -45,7 +45,7 @@ export function LobbyCreateGroupModal({
   onRemoveMember,
   onUpdateMember,
   onSubmit,
-}: LobbyCreateGroupModalProps) {
+}: Readonly<LobbyCreateGroupModalProps>) {
   return (
     <Modal
       isOpen={isOpen}

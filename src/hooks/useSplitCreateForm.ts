@@ -108,7 +108,7 @@ export function useSplitCreateForm() {
     return () => controller.abort();
   }, [selectedUf]);
 
-  const totalAmount = parseFloat(totalAmountStr) || 0;
+  const totalAmount = Number.parseFloat(totalAmountStr) || 0;
 
   const equalShares = useMemo(() => {
     const count = participants.length;
@@ -124,7 +124,7 @@ export function useSplitCreateForm() {
   }, [participants, totalAmount]);
 
   const customSum = useMemo(() => {
-    return participants.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+    return participants.reduce((sum, p) => sum + (Number.parseFloat(p.amount) || 0), 0);
   }, [participants]);
 
   const remainingCustom = totalAmount - customSum;
@@ -134,7 +134,7 @@ export function useSplitCreateForm() {
     setParticipants((prev) => [
       ...prev,
       {
-        id: Math.random().toString(36).substring(2, 9),
+        id: crypto.randomUUID(),
         name: '',
         isOwner: false,
         amount: '',
@@ -153,56 +153,62 @@ export function useSplitCreateForm() {
     );
   };
 
+  const validateValueStep = (): string | null => {
+    if (!title.trim() || title.length > 80) {
+      return 'O título deve ter entre 1 e 80 caracteres.';
+    }
+    if (totalAmount <= 0 || totalAmount > 1000000) {
+      return 'O valor total deve ser maior que zero e menor ou igual a R$ 1.000.000,00.';
+    }
+    return null;
+  };
+
+  const validatePixStep = (): string | null => {
+    if (!pixKey.trim()) {
+      return 'Informe a chave Pix para receber os pagamentos.';
+    }
+    if (pixKeyType === 'Cpf' && !isValidCpf(pixKey)) {
+      return 'CPF inválido. Confira os números digitados.';
+    }
+    if (pixKeyType === 'Cnpj' && !isValidCnpj(pixKey)) {
+      return 'CNPJ inválido. Confira os números digitados.';
+    }
+    if (!receiverName.trim() || receiverName.length > 25) {
+      return 'O nome do recebedor deve ter até 25 caracteres.';
+    }
+    if (receiverCity.length > 15) {
+      return 'A cidade deve ter até 15 caracteres.';
+    }
+    return null;
+  };
+
+  const validateParticipantsStep = (): string | null => {
+    if (participants.length < 2 || participants.length > 50) {
+      return 'O racha deve ter entre 2 e 50 participantes.';
+    }
+
+    const namesSet = new Set<string>();
+    for (const p of participants) {
+      const trimmed = p.name.trim().toLowerCase();
+      if (!trimmed) {
+        return 'Todos os participantes devem ter um nome.';
+      }
+      if (namesSet.has(trimmed)) {
+        return `Nome duplicado: "${p.name}". Cada participante deve ter um nome único.`;
+      }
+      namesSet.add(trimmed);
+    }
+
+    if (splitMode === 'Custom' && Math.abs(remainingCustom) > 0.01) {
+      return `A soma das partes (${formatBRL(customSum)}) deve ser exatamente igual ao total (${formatBRL(totalAmount)}). Diferença: ${formatBRL(remainingCustom)}`;
+    }
+    return null;
+  };
+
   const validateStep = (index: number): string | null => {
-    if (index === 0) {
-      if (!title.trim() || title.length > 80) {
-        return 'O título deve ter entre 1 e 80 caracteres.';
-      }
-      if (totalAmount <= 0 || totalAmount > 1000000) {
-        return 'O valor total deve ser maior que zero e menor ou igual a R$ 1.000.000,00.';
-      }
-    }
-
-    if (index === 1) {
-      if (!pixKey.trim()) {
-        return 'Informe a chave Pix para receber os pagamentos.';
-      }
-      if (pixKeyType === 'Cpf' && !isValidCpf(pixKey)) {
-        return 'CPF inválido. Confira os números digitados.';
-      }
-      if (pixKeyType === 'Cnpj' && !isValidCnpj(pixKey)) {
-        return 'CNPJ inválido. Confira os números digitados.';
-      }
-      if (!receiverName.trim() || receiverName.length > 25) {
-        return 'O nome do recebedor deve ter até 25 caracteres.';
-      }
-      if (receiverCity.length > 15) {
-        return 'A cidade deve ter até 15 caracteres.';
-      }
-    }
-
-    if (index === 2) {
-      if (participants.length < 2 || participants.length > 50) {
-        return 'O racha deve ter entre 2 e 50 participantes.';
-      }
-
-      const namesSet = new Set<string>();
-      for (const p of participants) {
-        const trimmed = p.name.trim().toLowerCase();
-        if (!trimmed) {
-          return 'Todos os participantes devem ter um nome.';
-        }
-        if (namesSet.has(trimmed)) {
-          return `Nome duplicado: "${p.name}". Cada participante deve ter um nome único.`;
-        }
-        namesSet.add(trimmed);
-      }
-
-      if (splitMode === 'Custom' && Math.abs(remainingCustom) > 0.01) {
-        return `A soma das partes (${formatBRL(customSum)}) deve ser exatamente igual ao total (${formatBRL(totalAmount)}). Diferença: ${formatBRL(remainingCustom)}`;
-      }
-    }
-
+    if (index === 0) return validateValueStep();
+    if (index === 1) return validatePixStep();
+    if (index === 2) return validateParticipantsStep();
     return null;
   };
 
@@ -275,7 +281,7 @@ export function useSplitCreateForm() {
             return {
               name: p.name.trim(),
               isOwner: p.isOwner,
-              amount: parseFloat(p.amount) || 0,
+              amount: Number.parseFloat(p.amount) || 0,
             };
           }
         }),

@@ -17,7 +17,7 @@ export function SplitDeleteModal({
   actionError,
   isDeleting,
   onDelete,
-}: SplitDeleteModalProps) {
+}: Readonly<SplitDeleteModalProps>) {
   return (
     <Modal
       isOpen={isOpen}
