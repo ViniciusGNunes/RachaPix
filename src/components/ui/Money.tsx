@@ -41,7 +41,9 @@ export function Money({ value, signed = false, animate = false, className = '' }
   const abs = Math.abs(shown);
   const [int, cents] = nf.format(abs).split(',');
   const negative = value < 0;
-  const sign = negative ? '− ' : signed && value > 0 ? '+ ' : '';
+  let sign = '';
+  if (negative) sign = '− ';
+  else if (signed && value > 0) sign = '+ ';
   let tone = '';
   if (signed) {
     if (negative) tone = 'text-rose-400';

@@ -5,7 +5,7 @@ interface SplitPublicNotFoundProps {
   error: string | null;
 }
 
-export function SplitPublicNotFound({ error }: SplitPublicNotFoundProps) {
+export function SplitPublicNotFound({ error }: Readonly<SplitPublicNotFoundProps>) {
   return (
     <div className="max-w-md mx-auto px-4 py-16 text-center animate-fade-up">
       <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6 space-y-4">

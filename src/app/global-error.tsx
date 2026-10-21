@@ -8,7 +8,7 @@ interface GlobalErrorProps {
   reset?: () => void;
 }
 
-export default function GlobalError({ error, retry, reset }: GlobalErrorProps) {
+export default function GlobalError({ error, retry, reset }: Readonly<GlobalErrorProps>) {
   useEffect(() => {
     console.error('Fatal application error:', error);
   }, [error]);

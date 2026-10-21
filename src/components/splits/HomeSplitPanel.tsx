@@ -17,7 +17,7 @@ const STEPS = [
   { icon: QrCode, title: 'Compartilhe os QR Codes', text: 'Cada pessoa paga a própria parte na hora.' },
 ];
 
-export function HomeSplitPanel({ savedSplits, totals }: HomeSplitPanelProps) {
+export function HomeSplitPanel({ savedSplits, totals }: Readonly<HomeSplitPanelProps>) {
   const hasSplits = savedSplits.length > 0;
 
   return (

@@ -19,7 +19,7 @@ export function SplitSummaryDesktop({
   equalAmount,
   loading,
   termsAccepted,
-}: SplitSummaryDesktopProps) {
+}: Readonly<SplitSummaryDesktopProps>) {
   return (
     <div className="hidden lg:block sticky top-20 rounded-lg bg-zinc-900 border border-zinc-800 p-4 space-y-3.5">
       <h3 className="text-xs font-medium text-zinc-400">

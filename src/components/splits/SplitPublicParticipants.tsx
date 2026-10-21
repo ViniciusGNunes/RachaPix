@@ -18,7 +18,7 @@ export function SplitPublicParticipants({
   loadingPix,
   termsAccepted,
   onSelectParticipant,
-}: SplitPublicParticipantsProps) {
+}: Readonly<SplitPublicParticipantsProps>) {
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between px-0.5">

@@ -16,6 +16,12 @@ import { AlertCircle } from 'lucide-react';
 import { useCreateExpense, useUpdateExpense } from '@/lib/query';
 import { CATEGORIES, isoDay } from './groupConstants';
 
+const SHARE_MODE_LABELS: Record<ShareMode, string> = {
+  Equal: 'Igual',
+  Custom: 'Valores',
+  Percentage: 'Porcentagem',
+};
+
 interface ExpenseModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -23,6 +29,47 @@ interface ExpenseModalProps {
   members: MemberDto[];
   currentMemberId: string | null;
   expenseToEdit: ExpenseDto | null;
+}
+
+type ShareInput = { memberId: string; amount: string; percentage: string; participating: boolean };
+type ShareOutput = { memberId: string; amount?: number | null; percentage?: number | null };
+
+const toNumber = (value: string) => Number.parseFloat(value) || 0;
+
+function buildEqualShares(shares: ShareInput[]): { shares: ShareOutput[] } | { error: string } {
+  const participating = shares.filter((s) => s.participating);
+  if (participating.length === 0) return { error: 'Selecione ao menos um participante na divisão.' };
+  return { shares: participating.map((s) => ({ memberId: s.memberId, amount: null, percentage: null })) };
+}
+
+function buildCustomShares(shares: ShareInput[], total: number): { shares: ShareOutput[] } | { error: string } {
+  if (shares.some((s) => toNumber(s.amount) < 0)) return { error: 'Os valores individuais não podem ser negativos.' };
+  const sum = shares.reduce((acc, s) => acc + toNumber(s.amount), 0);
+  if (Math.round(sum * 100) !== Math.round(total * 100)) {
+    return {
+      error: `A soma dos valores individuais (${formatBRL(sum)}) deve ser igual ao total da despesa (${formatBRL(total)}).`,
+    };
+  }
+  return {
+    shares: shares.filter((s) => toNumber(s.amount) > 0).map((s) => ({ memberId: s.memberId, amount: toNumber(s.amount) })),
+  };
+}
+
+function buildPercentageShares(shares: ShareInput[]): { shares: ShareOutput[] } | { error: string } {
+  if (shares.some((s) => toNumber(s.percentage) < 0)) return { error: 'As porcentagens não podem ser negativas.' };
+  const sum = shares.reduce((acc, s) => acc + toNumber(s.percentage), 0);
+  if (Math.abs(sum - 100) > 0.01) return { error: `A soma das porcentagens deve ser 100%. Soma atual: ${sum}%.` };
+  return {
+    shares: shares
+      .filter((s) => toNumber(s.percentage) > 0)
+      .map((s) => ({ memberId: s.memberId, percentage: toNumber(s.percentage) })),
+  };
+}
+
+function buildShares(mode: ShareMode, shares: ShareInput[], total: number): { shares: ShareOutput[] } | { error: string } {
+  if (mode === 'Equal') return buildEqualShares(shares);
+  if (mode === 'Custom') return buildCustomShares(shares, total);
+  return buildPercentageShares(shares);
 }
 
 export function ExpenseModal({
@@ -111,55 +158,12 @@ export function ExpenseModal({
       return;
     }
 
-    let payloadShares: { memberId: string; amount?: number | null; percentage?: number | null }[] =
-      [];
-
-    if (expenseShareMode === 'Equal') {
-      const participating = expenseShares.filter((s) => s.participating);
-      if (participating.length === 0) {
-        setExpenseFormError('Selecione ao menos um participante na divisão.');
-        return;
-      }
-      payloadShares = participating.map((s) => ({
-        memberId: s.memberId,
-        amount: null,
-        percentage: null,
-      }));
-    } else if (expenseShareMode === 'Custom') {
-      if (expenseShares.some((s) => (Number.parseFloat(s.amount) || 0) < 0)) {
-        setExpenseFormError('Os valores individuais não podem ser negativos.');
-        return;
-      }
-      const sum = expenseShares.reduce((acc, s) => acc + (Number.parseFloat(s.amount) || 0), 0);
-      if (Math.round(sum * 100) !== Math.round(total * 100)) {
-        setExpenseFormError(
-          `A soma dos valores individuais (${formatBRL(sum)}) deve ser igual ao total da despesa (${formatBRL(total)}).`
-        );
-        return;
-      }
-      payloadShares = expenseShares
-        .filter((s) => (Number.parseFloat(s.amount) || 0) > 0)
-        .map((s) => ({
-          memberId: s.memberId,
-          amount: Number.parseFloat(s.amount) || 0,
-        }));
-    } else if (expenseShareMode === 'Percentage') {
-      if (expenseShares.some((s) => (Number.parseFloat(s.percentage) || 0) < 0)) {
-        setExpenseFormError('As porcentagens não podem ser negativas.');
-        return;
-      }
-      const sum = expenseShares.reduce((acc, s) => acc + (Number.parseFloat(s.percentage) || 0), 0);
-      if (Math.abs(sum - 100) > 0.01) {
-        setExpenseFormError(`A soma das porcentagens deve ser 100%. Soma atual: ${sum}%.`);
-        return;
-      }
-      payloadShares = expenseShares
-        .filter((s) => (Number.parseFloat(s.percentage) || 0) > 0)
-        .map((s) => ({
-          memberId: s.memberId,
-          percentage: Number.parseFloat(s.percentage) || 0,
-        }));
+    const built = buildShares(expenseShareMode, expenseShares, total);
+    if ("error" in built) {
+      setExpenseFormError(built.error);
+      return;
     }
+    const payloadShares = built.shares;
 
     try {
       const payload: CreateExpenseRequest = {
@@ -317,11 +321,7 @@ export function ExpenseModal({
                       : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
                   }`}
                 >
-                  {mode === 'Equal'
-                    ? 'Igual'
-                    : mode === 'Custom'
-                    ? 'Valores'
-                    : 'Porcentagem'}
+                  {SHARE_MODE_LABELS[mode]}
                 </button>
               ))}
             </div>

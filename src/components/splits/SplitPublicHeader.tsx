@@ -18,7 +18,7 @@ export function SplitPublicHeader({
   split,
   progressPct,
   savedToken,
-}: SplitPublicHeaderProps) {
+}: Readonly<SplitPublicHeaderProps>) {
   const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   return (

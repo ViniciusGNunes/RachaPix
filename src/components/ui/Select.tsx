@@ -173,10 +173,10 @@ function Popover({
           </div>
 
           {/* Scrollable Options List */}
-          <ul
+          <ul // NOSONAR: custom combobox, keyboard handled on the input
             ref={listRef}
             id={id}
-            role="listbox" // NOSONAR: custom combobox, native <select> cannot be styled
+            role="listbox"
             aria-label={title}
             className="flex-1 min-h-0 overflow-y-auto overscroll-contain py-1.5 px-1 pb-3"
           >
@@ -191,10 +191,10 @@ function Popover({
   if (!position) return null;
 
   return createPortal(
-    <ul
+    <ul // NOSONAR: custom combobox, keyboard handled on the input
       ref={listRef}
       id={id}
-      role="listbox" // NOSONAR: custom combobox, native <select> cannot be styled
+      role="listbox"
       aria-label={title}
       style={{
         position: 'fixed',
@@ -261,7 +261,7 @@ export function Select({
 
   const openList = () => {
     if (disabled) return;
-    setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
+    setActiveIndex(Math.max(selectedIndex, 0));
     setOpen(true);
   };
 
@@ -365,7 +365,7 @@ export function Select({
             const isSelected = option.value === value;
             const isActive = index === activeIndex;
             return (
-              <li
+              <li // NOSONAR: custom combobox, keyboard handled on the input
                 key={option.value}
                 id={`${listId}-${index}`}
                 data-index={index}
@@ -510,7 +510,7 @@ export function Combobox({
       {showList && (
         <Popover position={position} listRef={listRef} id={listId} title={ariaLabel} onClose={close}>
           {filtered.map((item, index) => (
-            <li
+            <li // NOSONAR: custom combobox, keyboard handled on the input
               key={item}
               id={`${listId}-${index}`}
               data-index={index}

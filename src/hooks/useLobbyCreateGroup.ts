@@ -42,7 +42,7 @@ export function useLobbyCreateGroup(onSuccessCreated?: () => void) {
     setMembers((prev) => [
       ...prev,
       {
-        id: Math.random().toString(36).substring(2, 9),
+        id: crypto.randomUUID(),
         name: '',
         pixKey: '',
         pixKeyType: 'Email',

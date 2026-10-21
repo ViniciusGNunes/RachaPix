@@ -8,7 +8,7 @@ interface LobbyGroupCardProps {
   group: MyGroupDto;
 }
 
-export function LobbyGroupCard({ group }: LobbyGroupCardProps) {
+export function LobbyGroupCard({ group }: Readonly<LobbyGroupCardProps>) {
   return (
     <Link
       href={groupPath(group.id)}

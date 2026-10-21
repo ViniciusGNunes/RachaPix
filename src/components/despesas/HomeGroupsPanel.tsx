@@ -15,7 +15,7 @@ const FEATURES = [
   { icon: BarChart3, title: 'Estatísticas', text: 'Gastos por categoria e por pessoa.' },
 ];
 
-export function HomeGroupsPanel({ savedGroups }: HomeGroupsPanelProps) {
+export function HomeGroupsPanel({ savedGroups }: Readonly<HomeGroupsPanelProps>) {
   return (
     <section
       aria-labelledby="home-groups-title"

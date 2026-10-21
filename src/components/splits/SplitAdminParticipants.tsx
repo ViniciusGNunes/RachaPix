@@ -12,13 +12,19 @@ interface SplitAdminParticipantsProps {
   onTogglePaid: (id: string) => void;
 }
 
+function paymentStatusText(paidAt?: string | null, claimedAt?: string | null): string {
+  if (paidAt) return formatDateTime(paidAt);
+  if (claimedAt) return `Informado em ${formatDateTime(claimedAt)}`;
+  return '';
+}
+
 export function SplitAdminParticipants({
   participants,
   isOverdue,
   togglingId,
   onRejectClaim,
   onTogglePaid,
-}: SplitAdminParticipantsProps) {
+}: Readonly<SplitAdminParticipantsProps>) {
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between px-0.5">
@@ -51,11 +57,7 @@ export function SplitAdminParticipants({
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                       <ParticipantStatusPill paid={p.paid} paymentPending={p.paymentPending} isOverdue={isOverdue} />
                       <span className="text-xs text-zinc-400">
-                        {p.paidAt
-                          ? formatDateTime(p.paidAt)
-                          : p.claimedAt
-                            ? `Informado em ${formatDateTime(p.claimedAt)}`
-                            : ''}
+                        {paymentStatusText(p.paidAt, p.claimedAt)}
                       </span>
                     </div>
                   </div>

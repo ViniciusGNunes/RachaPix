@@ -10,7 +10,7 @@ interface LobbyCreatedModalProps {
   onClose: () => void;
 }
 
-export function LobbyCreatedModal({ createdGroup, onClose }: LobbyCreatedModalProps) {
+export function LobbyCreatedModal({ createdGroup, onClose }: Readonly<LobbyCreatedModalProps>) {
   const router = useRouter();
 
   return (

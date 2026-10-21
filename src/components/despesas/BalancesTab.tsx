@@ -86,6 +86,17 @@ export function BalancesTab({
           {balances.members.map((m) => {
             const isPositive = m.net > 0.005;
             const isNegative = m.net < -0.005;
+            let pillTone: 'emerald' | 'amber' = 'emerald';
+            let pillLabel = 'Quitado';
+            let netTone = 'text-zinc-400';
+            if (isPositive) {
+              pillLabel = 'A receber';
+              netTone = 'text-emerald-400';
+            } else if (isNegative) {
+              pillTone = 'amber';
+              pillLabel = 'Pendente';
+              netTone = 'text-rose-400';
+            }
 
             return (
               <div
@@ -101,25 +112,11 @@ export function BalancesTab({
                       </span>
                     )}
                   </div>
-                  {isPositive ? (
-                    <StatusPill tone="emerald">A receber</StatusPill>
-                  ) : isNegative ? (
-                    <StatusPill tone="amber">Pendente</StatusPill>
-                  ) : (
-                    <StatusPill tone="emerald">Quitado</StatusPill>
-                  )}
+                  <StatusPill tone={pillTone}>{pillLabel}</StatusPill>
                 </div>
 
                 <div className="text-xl sm:text-2xl font-bold tabular-nums">
-                  <span
-                    className={
-                      isPositive
-                        ? 'text-emerald-400'
-                        : isNegative
-                        ? 'text-rose-400'
-                        : 'text-zinc-400'
-                    }
-                  >
+                  <span className={netTone}>
                     <Money value={Math.abs(m.net)} />
                   </span>
                 </div>
@@ -171,12 +168,12 @@ export function BalancesTab({
               <TermsConsentCheckbox id="group-settle-terms-consent" />
             </div>
 
-            {balances.suggestedTransfers.map((st, idx) => {
+            {balances.suggestedTransfers.map((st) => {
               const canSettle = isAdmin || (!!currentMemberId && (st.fromMemberId === currentMemberId || st.toMemberId === currentMemberId));
 
               return (
                 <div
-                  key={idx}
+                  key={`${st.fromMemberId}-${st.toMemberId}`}
                   className="p-3 sm:p-3.5 rounded-lg border border-zinc-800 bg-zinc-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 >
                   <div className="text-xs sm:text-sm text-zinc-300">

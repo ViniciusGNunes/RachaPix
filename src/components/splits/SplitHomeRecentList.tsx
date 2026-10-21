@@ -12,7 +12,7 @@ interface SplitHomeRecentListProps {
   totals: SplitTotals | null;
 }
 
-export function SplitHomeRecentList({ savedSplits, totals }: SplitHomeRecentListProps) {
+export function SplitHomeRecentList({ savedSplits, totals }: Readonly<SplitHomeRecentListProps>) {
   return (
     <section className="space-y-2.5">
       <div className="flex items-center justify-between">
