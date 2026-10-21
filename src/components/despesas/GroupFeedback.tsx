@@ -22,7 +22,7 @@ export function StatusPill({ tone, children }: Readonly<{ tone: PillTone; childr
 
 export function DayHeader({ label }: Readonly<{ label: string }>) {
   return (
-    <div className="sticky top-0 z-10 pt-4 pb-2 bg-background/95 backdrop-blur-sm text-xs font-semibold uppercase tracking-wider text-zinc-400">
+    <div className="sticky top-0 z-10 pt-3 pb-1.5 bg-background text-xs font-semibold uppercase tracking-wider text-zinc-400 border-b border-zinc-800">
       {label}
     </div>
   );
@@ -31,11 +31,11 @@ export function DayHeader({ label }: Readonly<{ label: string }>) {
 export function GroupLoadingSkeleton() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 lg:pt-4 pb-28 lg:pb-12 w-full space-y-4 animate-fade-up" aria-busy="true">
-      <Skeleton className="h-32 w-full rounded-2xl" />
-      <Skeleton className="h-12 w-full rounded-2xl" />
-      <Skeleton className="h-24 w-full rounded-2xl" />
-      <Skeleton className="h-24 w-full rounded-2xl" />
-      <Skeleton className="h-24 w-full rounded-2xl" />
+      <Skeleton className="h-28 w-full rounded-lg" />
+      <Skeleton className="h-10 w-full rounded-lg" />
+      <Skeleton className="h-20 w-full rounded-lg" />
+      <Skeleton className="h-20 w-full rounded-lg" />
+      <Skeleton className="h-20 w-full rounded-lg" />
     </div>
   );
 }
@@ -43,8 +43,8 @@ export function GroupLoadingSkeleton() {
 export function GroupNotFound({ error }: Readonly<{ error: unknown }>) {
   return (
     <div className="max-w-md mx-auto px-4 py-20 text-center animate-fade-up">
-      <div className="w-14 h-14 bg-rose-500/10 text-rose-400 rounded-2xl border border-rose-500/30 flex items-center justify-center mx-auto mb-4 shadow-sm">
-        <AlertCircle className="w-7 h-7" />
+      <div className="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-lg border border-rose-500/30 flex items-center justify-center mx-auto mb-3.5">
+        <AlertCircle className="w-6 h-6" />
       </div>
       <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-50 mb-2">
         Grupo não encontrado
@@ -54,7 +54,7 @@ export function GroupNotFound({ error }: Readonly<{ error: unknown }>) {
       </p>
       <Link
         href="/despesas"
-        className="inline-flex items-center justify-center h-11 sm:h-12 px-5 bg-accent text-accent-fg rounded-xl text-sm font-semibold hover:bg-accent-hover active:scale-[0.98] transition-all shadow-sm"
+        className="inline-flex items-center justify-center h-10 sm:h-9 px-4 bg-accent text-accent-fg rounded-md text-sm font-medium hover:bg-accent-hover transition-colors shadow-sm"
       >
         Voltar para grupos
       </Link>

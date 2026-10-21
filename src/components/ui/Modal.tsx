@@ -102,7 +102,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in sm:overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/70 animate-fade-in sm:overflow-y-auto"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -110,30 +110,30 @@ export function Modal({
     >
       <div
         ref={modalRef}
-        className={`w-full ${maxWidthClasses} bg-zinc-950 rounded-t-2xl sm:rounded-2xl border border-zinc-800 overflow-hidden max-h-[92dvh] sm:max-h-none flex flex-col animate-sheet-up sm:animate-modal-pop shadow-2xl sm:my-8`}
+        className={`w-full ${maxWidthClasses} bg-zinc-950 rounded-t-lg sm:rounded-lg border border-zinc-800 overflow-hidden max-h-[92dvh] sm:max-h-none flex flex-col animate-sheet-up sm:animate-modal-pop shadow-sm sm:my-8`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sm:hidden mx-auto mt-3 h-1.5 w-12 shrink-0 rounded-full bg-zinc-700/80" aria-hidden="true" />
-        <div className="flex items-start justify-between p-4 sm:p-5 border-b border-zinc-800 shrink-0">
+        <div className="sm:hidden mx-auto mt-2.5 h-1 w-10 shrink-0 rounded-full bg-zinc-700" aria-hidden="true" />
+        <div className="flex items-start justify-between p-3.5 sm:p-4 border-b border-zinc-800 shrink-0">
           <div>
-            <h2 id="modal-title" className="text-xl font-semibold text-zinc-50 tracking-tight">
+            <h2 id="modal-title" className="text-lg sm:text-xl font-semibold text-zinc-50 tracking-tight">
               {title}
             </h2>
             {description && (
-              <p className="mt-1 text-sm text-zinc-400">{description}</p>
+              <p className="mt-1 text-xs sm:text-sm text-zinc-400">{description}</p>
             )}
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 -mr-1 text-zinc-400 hover:text-zinc-200 rounded-xl hover:bg-zinc-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="p-1.5 -mr-1 text-zinc-400 hover:text-zinc-200 rounded-md hover:bg-zinc-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
             aria-label="Fechar modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-4 sm:p-6 sm:max-h-[80vh] overflow-y-auto pb-[calc(1rem+env(safe-area-inset-bottom))]">{children}</div>
+        <div className="p-4 sm:p-5 sm:max-h-[80vh] overflow-y-auto pb-[calc(1rem+env(safe-area-inset-bottom))]">{children}</div>
       </div>
     </div>
   );

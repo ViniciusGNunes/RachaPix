@@ -88,9 +88,9 @@ export function ExpensesTab({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Filters Bar */}
-      <div className="p-3 sm:p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-3 text-xs">
+      <div className="p-2.5 sm:p-3 rounded-md bg-zinc-900 border border-zinc-800 grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 text-xs">
         <div>
           <input
             type="date"
@@ -98,7 +98,7 @@ export function ExpensesTab({
             max={filterTo || undefined}
             onChange={(e) => onFilterFromChange(e.target.value)}
             placeholder="De"
-            className="w-full h-11 px-3.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm focus:border-accent focus:outline-none transition-colors"
+            className="w-full h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm focus:border-accent focus:outline-none transition-colors"
           />
         </div>
 
@@ -109,7 +109,7 @@ export function ExpensesTab({
             min={filterFrom || undefined}
             onChange={(e) => onFilterToChange(e.target.value)}
             placeholder="Até"
-            className="w-full h-11 px-3.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm focus:border-accent focus:outline-none transition-colors"
+            className="w-full h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm focus:border-accent focus:outline-none transition-colors"
           />
         </div>
 
@@ -118,7 +118,7 @@ export function ExpensesTab({
             value={filterCategory}
             onChange={(value) => onFilterCategoryChange(value)}
             options={[{ value: '', label: 'Todas Categorias' }, ...CATEGORIES.map((c) => ({ value: c, label: CATEGORY_LABELS[c] }))]}
-            triggerClassName="px-3 py-1.5 h-11 rounded-xl text-sm"
+            triggerClassName="px-3 py-1.5 h-10 sm:h-9 rounded-md text-sm"
             className="block sm:inline-block w-full sm:w-auto"
           />
         </div>
@@ -128,7 +128,7 @@ export function ExpensesTab({
             value={filterMemberId}
             onChange={(value) => onFilterMemberIdChange(value)}
             options={[{ value: '', label: 'Todos Quem Pagou' }, ...members.map((mb) => ({ value: mb.id, label: mb.name }))]}
-            triggerClassName="px-3 py-1.5 h-11 rounded-xl text-sm"
+            triggerClassName="px-3 py-1.5 h-10 sm:h-9 rounded-md text-sm"
             className="block sm:inline-block w-full sm:w-auto"
           />
         </div>
@@ -137,7 +137,7 @@ export function ExpensesTab({
           <button
             type="button"
             onClick={onClearFilters}
-            className="col-span-2 h-11 px-3 rounded-xl border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-xs font-semibold text-accent transition-all active:scale-[0.98] cursor-pointer sm:ml-auto inline-flex items-center justify-center"
+            className="col-span-2 h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-accent transition-colors cursor-pointer sm:ml-auto inline-flex items-center justify-center"
           >
             Limpar Filtros
           </button>
@@ -146,9 +146,9 @@ export function ExpensesTab({
 
       {/* Expenses List */}
       {expenses.length === 0 ? (
-        <div className="p-8 sm:p-12 text-center flex flex-col items-center max-w-sm mx-auto rounded-2xl bg-zinc-900/40 border border-zinc-800/80">
-          <div className="w-12 h-12 rounded-2xl bg-zinc-800/80 border border-zinc-700/60 flex items-center justify-center text-zinc-300 mb-4 shadow-sm">
-            <Receipt className="w-6 h-6" />
+        <div className="p-6 sm:p-8 text-center flex flex-col items-center max-w-sm mx-auto rounded-lg bg-zinc-900 border border-zinc-800">
+          <div className="w-10 h-10 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 mb-3">
+            <Receipt className="w-5 h-5" />
           </div>
           <h3 className="font-semibold text-zinc-50 text-base">
             Nenhuma despesa encontrada
@@ -164,7 +164,7 @@ export function ExpensesTab({
           {groupByDay(expenses).map((g) => (
             <div key={g.key} className="space-y-2">
               <DayHeader label={g.label} />
-              <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 divide-y divide-zinc-800/80 overflow-hidden">
+              <div className="rounded-lg border border-zinc-800 bg-zinc-900 divide-y divide-zinc-800 overflow-hidden">
                 {g.items.map((exp) => {
                   const Icon = (CATEGORY_STYLE[exp.category] ?? CATEGORY_STYLE.Other).icon;
                   const catCls = (CATEGORY_STYLE[exp.category] ?? CATEGORY_STYLE.Other).cls;
@@ -181,14 +181,14 @@ export function ExpensesTab({
                   return (
                     <div
                       key={exp.id}
-                      className="p-3.5 sm:p-4 hover:bg-zinc-900/60 transition-colors"
+                      className="py-2 px-3 hover:bg-zinc-850 transition-colors"
                     >
-                      <div className="flex items-center gap-3.5">
+                      <div className="flex items-center gap-3">
                         <span
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${catCls}`}
+                          className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${catCls}`}
                           title={CATEGORY_LABELS[exp.category]}
                         >
-                          <Icon className="w-5 h-5" />
+                          <Icon className="w-4 h-4" />
                         </span>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -208,16 +208,16 @@ export function ExpensesTab({
                             {exp.notes ? ` · ${exp.notes}` : ''}
                           </p>
                         </div>
-                        <div className="text-right shrink-0 text-base sm:text-lg font-bold tabular-nums text-zinc-50">
+                        <div className="text-right shrink-0 text-sm sm:text-base font-bold tabular-nums text-zinc-50">
                           <Money value={exp.amount} />
                         </div>
                         {canManageExpense && (
-                          <div className="flex items-center shrink-0 gap-1">
+                          <div className="flex items-center shrink-0 gap-0.5">
                             <button
                               type="button"
                               onClick={() => onEditExpense(exp)}
                               aria-label="Editar despesa"
-                              className="p-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors cursor-pointer"
                               title="Editar despesa"
                             >
                               <Edit2 className="w-4 h-4" />
@@ -226,7 +226,7 @@ export function ExpensesTab({
                               type="button"
                               onClick={() => onDeleteExpense(exp)}
                               aria-label="Excluir despesa"
-                              className="p-2 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-md text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                               title="Excluir despesa"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -237,16 +237,16 @@ export function ExpensesTab({
 
                       {/* Seção Confirmar / Contestar para confirmador */}
                       {isConfirmer && (
-                        <div className="mt-2.5 pt-2 border-t border-zinc-800/60 flex flex-wrap items-center gap-2">
+                        <div className="mt-2 pt-1.5 border-t border-zinc-800 flex flex-wrap items-center gap-1.5">
                           <span className="text-[11px] text-zinc-400">Sua confirmação:</span>
                           <button
                             type="button"
                             onClick={() => handleConfirmExpense(exp.id)}
                             disabled={confirmingExpenseId === exp.id || myConf?.status === 'Confirmed'}
-                            className={`h-7 px-2.5 rounded-lg text-xs font-medium transition cursor-pointer inline-flex items-center gap-1 ${
+                            className={`h-7 px-2.5 rounded-md text-xs font-medium transition cursor-pointer inline-flex items-center gap-1 ${
                               myConf?.status === 'Confirmed'
                                 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold'
-                                : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/60'
+                                : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700'
                             }`}
                           >
                             <Check className="w-3.5 h-3.5" />
@@ -256,10 +256,10 @@ export function ExpensesTab({
                             type="button"
                             onClick={() => onContestExpense(exp)}
                             disabled={confirmingExpenseId === exp.id}
-                            className={`h-7 px-2.5 rounded-lg text-xs font-medium transition cursor-pointer inline-flex items-center gap-1 ${
+                            className={`h-7 px-2.5 rounded-md text-xs font-medium transition cursor-pointer inline-flex items-center gap-1 ${
                               myConf?.status === 'Contested'
                                 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold'
-                                : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/60'
+                                : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700'
                             }`}
                           >
                             {myConf?.status === 'Contested' ? 'Contestada' : 'Contestar'}

@@ -126,11 +126,11 @@ export function SettlementModal({
       description="Registre uma transferência de dinheiro entre membros para abater saldos."
       maxWidth="md"
     >
-      <form onSubmit={handleSaveSettlement} className="space-y-4">
+      <form onSubmit={handleSaveSettlement} className="space-y-3.5">
         {settlementError && (
           <div
             role="alert"
-            className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs flex items-center gap-2"
+            className="p-3 rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs flex items-center gap-2"
           >
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
             <span>{settlementError}</span>
@@ -139,7 +139,7 @@ export function SettlementModal({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <span className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+            <span className="block text-[13px] font-medium text-zinc-400 mb-1">
               Quem Pagou (Devedor) *
             </span>
             <Select
@@ -153,12 +153,12 @@ export function SettlementModal({
               options={members
                 .filter((mb) => isAdmin || !currentMemberId || settlementTo === currentMemberId || mb.id === currentMemberId)
                 .map((mb) => ({ value: mb.id, label: mb.name }))}
-              triggerClassName="px-3.5 py-2 h-11 rounded-xl text-sm"
+              triggerClassName="px-3 py-1.5 h-10 sm:h-9 rounded-md text-sm"
             />
           </div>
 
           <div>
-            <span className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+            <span className="block text-[13px] font-medium text-zinc-400 mb-1">
               Quem Recebeu (Credor) *
             </span>
             <Select
@@ -172,14 +172,14 @@ export function SettlementModal({
               options={members
                 .filter((mb) => isAdmin || !currentMemberId || settlementFrom === currentMemberId || mb.id === currentMemberId)
                 .map((mb) => ({ value: mb.id, label: mb.name }))}
-              triggerClassName="px-3.5 py-2 h-11 rounded-xl text-sm"
+              triggerClassName="px-3 py-1.5 h-10 sm:h-9 rounded-md text-sm"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label htmlFor="settlement-amount" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+            <label htmlFor="settlement-amount" className="block text-[13px] font-medium text-zinc-400 mb-1">
               Valor (R$) *
             </label>
             <input
@@ -192,12 +192,12 @@ export function SettlementModal({
               placeholder="0.00"
               value={settlementAmountStr}
               onChange={(e) => setSettlementAmountStr(e.target.value)}
-              className="w-full h-11 px-3.5 py-2 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm font-semibold tabular-nums placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors"
+              className="w-full h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm font-semibold tabular-nums placeholder:text-zinc-400 focus:border-accent focus:outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label htmlFor="settlement-date" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+            <label htmlFor="settlement-date" className="block text-[13px] font-medium text-zinc-400 mb-1">
               Data *
             </label>
             <input
@@ -206,13 +206,13 @@ export function SettlementModal({
               required
               value={settlementDate}
               onChange={(e) => setSettlementDate(e.target.value)}
-              className="w-full h-11 px-3.5 py-2 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm focus:border-accent focus:outline-none transition-colors"
+              className="w-full h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm focus:border-accent focus:outline-none transition-colors"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="settlement-notes" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+          <label htmlFor="settlement-notes" className="block text-[13px] font-medium text-zinc-400 mb-1">
             Observações (opcional)
           </label>
           <input
@@ -221,22 +221,22 @@ export function SettlementModal({
             placeholder="Ex: Pix comprovante enviado no WhatsApp"
             value={settlementNotes}
             onChange={(e) => setSettlementNotes(e.target.value)}
-            className="w-full h-11 px-3.5 py-2 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors"
+            className="w-full h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm placeholder:text-zinc-400 focus:border-accent focus:outline-none transition-colors"
           />
         </div>
 
-        <div className="flex justify-end gap-2.5 pt-3 border-t border-zinc-800/80">
+        <div className="flex justify-end gap-2.5 pt-3 border-t border-zinc-800">
           <button
             type="button"
             onClick={onClose}
-            className="h-11 px-4 rounded-xl border border-zinc-800 text-zinc-300 hover:text-zinc-50 hover:bg-zinc-800/60 font-semibold text-sm transition-colors active:scale-[0.98] cursor-pointer inline-flex items-center justify-center"
+            className="h-10 sm:h-9 px-3.5 rounded-md border border-zinc-800 text-zinc-300 hover:text-zinc-50 hover:bg-zinc-800 font-medium text-sm transition-colors cursor-pointer inline-flex items-center justify-center"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={createSettlementMutation.isPending}
-            className="h-11 px-5 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-sm transition-all active:scale-[0.98] shadow-sm cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            className="h-10 sm:h-9 px-4 rounded-md bg-accent hover:bg-accent-hover text-accent-fg font-medium text-sm transition-colors shadow-sm cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2"
           >
             {createSettlementMutation.isPending ? 'Registrando...' : 'Confirmar Acerto'}
           </button>

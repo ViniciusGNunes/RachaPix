@@ -25,9 +25,9 @@ export default function ErrorBoundary({ error, retry, reset }: ErrorProps) {
 
   return (
     <div className="flex-1 flex items-center justify-center px-4 py-16">
-      <div className="max-w-md w-full bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 md:p-8 text-center space-y-5 shadow-xl">
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-          <AlertTriangle className="w-7 h-7" />
+      <div className="max-w-md w-full bg-zinc-900/60 border border-zinc-800 rounded-lg p-6 md:p-8 text-center space-y-5 shadow-sm">
+        <div className="w-10 h-10 mx-auto rounded-md bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+          <AlertTriangle className="w-5 h-5" />
         </div>
 
         <div className="space-y-2">
@@ -45,14 +45,14 @@ export default function ErrorBoundary({ error, retry, reset }: ErrorProps) {
           <button
             type="button"
             onClick={handleRetry}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-zinc-950 font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-9 px-4 rounded-md bg-accent text-zinc-950 font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
             Tentar novamente
           </button>
           <Link
             href="/"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-800 text-zinc-200 font-medium text-sm hover:bg-zinc-700/80 transition-colors"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-9 px-4 rounded-md bg-zinc-800 text-zinc-200 font-medium text-sm hover:bg-zinc-700/80 transition-colors"
           >
             <Home className="w-4 h-4" />
             Início

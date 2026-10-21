@@ -26,8 +26,8 @@ export default function GlobalError({ error, retry, reset }: GlobalErrorProps) {
   return (
     <html lang="pt-BR" className="h-full">
       <body className="min-h-full flex items-center justify-center bg-zinc-950 text-zinc-100 font-sans p-4 antialiased">
-        <div className="max-w-md w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8 text-center space-y-5 shadow-2xl">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 font-bold text-2xl">
+        <div className="max-w-md w-full bg-zinc-900 border border-zinc-800 rounded-lg p-6 md:p-8 text-center space-y-5 shadow-sm">
+          <div className="w-10 h-10 mx-auto rounded-md bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 font-bold text-2xl">
             !
           </div>
 
@@ -43,7 +43,7 @@ export default function GlobalError({ error, retry, reset }: GlobalErrorProps) {
           <button
             type="button"
             onClick={handleRetry}
-            className="w-full inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-zinc-100 text-zinc-950 font-semibold text-sm hover:bg-zinc-200 transition-colors cursor-pointer"
+            className="w-full inline-flex items-center justify-center h-9 px-4 rounded-md bg-zinc-100 text-zinc-950 font-semibold text-sm hover:bg-zinc-200 transition-colors cursor-pointer"
           >
             Recarregar aplicação
           </button>

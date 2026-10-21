@@ -50,8 +50,8 @@ export const CATEGORY_STYLE: Record<ExpenseCategory, { icon: LucideIcon; cls: st
   Health: { icon: HeartPulse, cls: 'bg-rose-500/15 text-rose-400 border border-rose-500/25' },
   Travel: { icon: Plane, cls: 'bg-blue-500/15 text-blue-400 border border-blue-500/25' },
   Shopping: { icon: ShoppingBag, cls: 'bg-purple-500/15 text-purple-400 border border-purple-500/25' },
-  Other: { icon: CircleEllipsis, cls: 'bg-zinc-800/80 text-zinc-400 border border-zinc-700/60' },
-  Uncategorized: { icon: CircleEllipsis, cls: 'bg-zinc-800/80 text-zinc-400 border border-zinc-700/60' },
+  Other: { icon: CircleEllipsis, cls: 'bg-zinc-800 text-zinc-300 border border-zinc-700' },
+  Uncategorized: { icon: CircleEllipsis, cls: 'bg-zinc-800 text-zinc-300 border border-zinc-700' },
 };
 
 export function isoDay(d: Date): string {
@@ -89,14 +89,14 @@ export const PILL_STYLE: Record<PillTone, string> = {
   emerald: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
   amber: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
   rose: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
-  neutral: 'bg-zinc-800/80 text-zinc-400 border-zinc-700/60',
+  neutral: 'bg-zinc-800 text-zinc-300 border-zinc-700',
 };
 
 export const PILL_DOT: Record<PillTone, string> = {
   emerald: 'bg-emerald-400',
   amber: 'bg-amber-400',
   rose: 'bg-rose-400',
-  neutral: 'bg-zinc-500',
+  neutral: 'bg-zinc-400',
 };
 
 export function errorMessageOr(err: unknown, fallback: string): string {

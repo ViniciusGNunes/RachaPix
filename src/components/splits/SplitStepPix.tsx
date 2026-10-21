@@ -64,21 +64,21 @@ export function SplitStepPix({
     : 'animate-slide-from-left';
 
   const inputCls =
-    'w-full h-11 lg:h-10 px-3.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors';
-  const labelCls = 'block text-[13px] font-medium text-zinc-400 mb-1.5 lg:mb-1';
+    'w-full h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-50 text-sm placeholder:text-zinc-400 focus:border-accent focus:outline-none transition-colors';
+  const labelCls = 'block text-xs font-medium text-zinc-400 mb-1';
   const stepBadgeCls =
-    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 border border-accent/30 text-xs font-semibold text-accent';
+    'flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/15 border border-accent/30 text-xs font-semibold text-accent';
 
   return (
     <section
-      className={`p-4 sm:p-7 lg:p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-6 lg:space-y-4 ${animClass} lg:animate-none`}
+      className={`p-4 sm:p-5 lg:p-4 rounded-lg bg-zinc-900 border border-zinc-800 space-y-4 ${animClass} lg:animate-none`}
     >
-      <h2 className="flex items-center gap-3 lg:gap-2.5 text-lg lg:text-base font-semibold text-zinc-50">
+      <h2 className="flex items-center gap-2.5 text-base font-semibold text-zinc-50">
         <span className={stepBadgeCls}>2</span>
         Pix para receber
       </h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-5 lg:gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4 lg:gap-3">
         <div>
           <span className={labelCls}>Tipo da chave</span>
           <Select
@@ -111,7 +111,7 @@ export function SplitStepPix({
           />
         </div>
 
-        <div className="sm:col-span-3 lg:col-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-5 lg:gap-3">
+        <div className="sm:col-span-3 lg:col-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 lg:gap-3">
           <div>
             <label htmlFor="receiver-name" className={labelCls}>Nome do titular</label>
             <input
@@ -132,7 +132,7 @@ export function SplitStepPix({
               <Select
                 ariaLabel="Estado (UF)"
                 className="w-20 sm:w-24 shrink-0"
-                triggerClassName="px-2.5 sm:px-3 py-2.5 text-sm rounded-xl"
+                triggerClassName="px-2.5 sm:px-3 py-1.5 sm:py-2 text-sm rounded-md"
                 value={selectedUf}
                 onChange={(value) => setUfOverride(value as UF | '')}
                 options={UF_OPTIONS}
@@ -147,7 +147,7 @@ export function SplitStepPix({
                 suggestions={cityOptions}
               />
             </div>
-            {citySource && <span className="block mt-1 text-xs text-zinc-500">{citySource}</span>}
+            {citySource && <span className="block mt-1 text-xs text-zinc-400">{citySource}</span>}
           </div>
         </div>
       </div>

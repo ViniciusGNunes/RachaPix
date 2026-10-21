@@ -23,60 +23,59 @@ export function HomeSplitPanel({ savedSplits, totals }: HomeSplitPanelProps) {
   return (
     <section
       aria-labelledby="home-split-title"
-      className="relative overflow-hidden flex flex-col gap-8 rounded-3xl border border-zinc-800/80 bg-gradient-to-br from-accent/[0.07] via-zinc-900/40 to-zinc-900/20 p-6 sm:p-10 lg:p-12"
+      className="flex flex-col gap-6 rounded-lg border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6 lg:p-8"
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-32 -right-32 h-80 w-80 rounded-full bg-accent/10 blur-3xl"
-      />
-
-      <div className="relative space-y-5">
-        <div className="w-14 h-14 rounded-2xl bg-accent/10 border border-accent/25 flex items-center justify-center text-accent">
-          <Receipt className="w-7 h-7" />
+      <div className="space-y-4">
+        <div className="w-10 h-10 rounded-md bg-accent/10 border border-accent/20 flex items-center justify-center text-accent">
+          <Receipt className="w-5 h-5" />
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">Rápido, sem cadastro</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-accent">Rápido, sem cadastro</p>
           <h1
             id="home-split-title"
-            className="mt-2 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-zinc-50"
+            className="mt-1.5 text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-50"
           >
             Dividir conta pelo Pix
           </h1>
-          <p className="mt-3 text-base sm:text-lg text-zinc-400 leading-relaxed max-w-xl">
+          <p className="mt-2 text-sm sm:text-base text-zinc-400 leading-relaxed max-w-xl">
             Informe o valor e quem participou. Cada pessoa recebe um QR Code Pix com a parte dela, direto na chave de
             quem pagou.
           </p>
         </div>
-        <Link
-          href="/rachar"
-          className="group h-14 px-6 rounded-2xl bg-accent text-zinc-950 hover:brightness-110 text-base font-semibold transition-all active:scale-[0.99] inline-flex items-center justify-between gap-6 cursor-pointer shadow-lg shadow-accent/10"
-        >
-          Dividir uma conta agora
-          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-        </Link>
+        <div>
+          <Link
+            href="/rachar"
+            className="group h-10 sm:h-9 px-4 rounded-md bg-accent text-zinc-950 hover:brightness-110 text-sm font-semibold transition-all active:scale-[0.99] inline-flex items-center justify-between gap-4 cursor-pointer"
+          >
+            Dividir uma conta agora
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
       </div>
 
-      <ol className="relative grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+      <ol className="divide-y divide-zinc-800 border-y border-zinc-800">
         {STEPS.map(({ icon: Icon, title, text }, i) => (
-          <li key={title} className="rounded-2xl border border-zinc-800/80 bg-zinc-950/40 p-4 space-y-2">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/15 border border-accent/30 text-xs font-semibold text-accent">
-                {i + 1}
-              </span>
-              <Icon className="w-4 h-4 text-zinc-400" />
+          <li key={title} className="py-2.5 sm:py-3 flex items-start gap-3">
+            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-accent/15 ring-1 ring-inset ring-accent/30 text-xs leading-none font-semibold tabular-nums text-accent">
+              {i + 1}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <Icon className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                <p className="text-sm font-medium text-zinc-100">{title}</p>
+              </div>
+              <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">{text}</p>
             </div>
-            <p className="text-sm font-semibold text-zinc-100">{title}</p>
-            <p className="text-xs text-zinc-400 leading-relaxed">{text}</p>
           </li>
         ))}
       </ol>
 
-      <div className="relative mt-auto space-y-6">
+      <div className="mt-auto space-y-4">
         {hasSplits && totals && <SplitHomeTotals totals={totals} count={savedSplits.length} />}
         {hasSplits ? (
           <SplitHomeRecentList savedSplits={savedSplits} totals={totals} />
         ) : (
-          <div className="rounded-2xl border border-dashed border-zinc-800 p-5 text-sm text-zinc-500 leading-relaxed">
+          <div className="rounded-md border border-dashed border-zinc-800 p-4 text-xs sm:text-sm text-zinc-400 leading-relaxed">
             Suas contas divididas aparecem aqui, salvas neste navegador. Os centavos que sobram são distribuídos pra
             soma sempre bater.
           </div>

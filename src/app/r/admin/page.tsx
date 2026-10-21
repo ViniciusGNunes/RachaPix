@@ -60,17 +60,17 @@ function SplitAdminContent() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-24 md:pb-12 w-full space-y-6 animate-fade-up">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 pb-20 md:pb-10 w-full space-y-5 animate-fade-up">
       {actionError && !deleteModalOpen && (
         <div
           role="alert"
-          className="border border-rose-800/80 bg-rose-950/20 text-rose-300 p-4 rounded-xl text-sm flex items-start justify-between gap-3 animate-fade-in"
+          className="border border-rose-800 bg-rose-950/30 text-rose-300 p-3 rounded-md text-sm flex items-start justify-between gap-3 animate-fade-in"
         >
           <span>{actionError}</span>
           <button
             type="button"
             onClick={() => setActionError(null)}
-            className="text-sm font-medium hover:underline cursor-pointer min-h-11 px-2"
+            className="text-sm font-medium hover:underline cursor-pointer h-9 px-2 flex items-center"
           >
             Fechar
           </button>

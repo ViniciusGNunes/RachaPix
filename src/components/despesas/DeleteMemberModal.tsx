@@ -58,7 +58,7 @@ export function DeleteMemberModal({
         {deleteError && (
           <div
             role="alert"
-            className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs flex items-start gap-2"
+            className="p-3 rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs flex items-start gap-2"
           >
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
             <span>{deleteError}</span>
@@ -69,11 +69,11 @@ export function DeleteMemberModal({
           Deseja realmente remover <strong>{member?.name}</strong> do grupo?
         </p>
 
-        <div className="flex justify-end gap-2.5 pt-3 border-t border-zinc-800/80">
+        <div className="flex justify-end gap-2.5 pt-3 border-t border-zinc-800">
           <button
             type="button"
             onClick={onClose}
-            className="h-11 px-4 rounded-xl border border-zinc-800 text-zinc-300 hover:text-zinc-50 hover:bg-zinc-800/60 font-semibold text-sm transition-colors active:scale-[0.98] cursor-pointer inline-flex items-center justify-center"
+            className="h-10 sm:h-9 px-3.5 rounded-md border border-zinc-800 text-zinc-300 hover:text-zinc-50 hover:bg-zinc-800 font-medium text-sm transition-colors cursor-pointer inline-flex items-center justify-center"
           >
             Cancelar
           </button>
@@ -81,7 +81,7 @@ export function DeleteMemberModal({
             type="button"
             disabled={deleteMemberMutation.isPending}
             onClick={handleConfirmDelete}
-            className="h-11 px-5 rounded-xl border border-rose-500/40 bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 font-semibold text-sm transition-colors active:scale-[0.98] cursor-pointer disabled:opacity-50 inline-flex items-center justify-center shadow-sm"
+            className="h-10 sm:h-9 px-3.5 rounded-md border border-rose-500/40 bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 font-medium text-sm transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center justify-center shadow-sm"
           >
             {deleteMemberMutation.isPending ? 'Removendo...' : 'Confirmar Remoção'}
           </button>

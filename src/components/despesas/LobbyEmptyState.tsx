@@ -7,20 +7,20 @@ interface LobbyEmptyStateProps {
 
 export function LobbyEmptyState({ onOpenCreateModal }: LobbyEmptyStateProps) {
   return (
-    <div className="p-8 sm:p-12 text-center flex flex-col items-center max-w-md mx-auto rounded-2xl bg-zinc-900/40 border border-zinc-800/80">
-      <div className="w-12 h-12 rounded-2xl bg-zinc-800/80 border border-zinc-700/60 flex items-center justify-center text-zinc-300 mb-4 shadow-sm">
-        <Users className="w-6 h-6" />
+    <div className="p-6 sm:p-8 text-center flex flex-col items-center max-w-md mx-auto rounded-lg bg-zinc-900 border border-zinc-800">
+      <div className="w-10 h-10 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 mb-3.5">
+        <Users className="w-5 h-5" />
       </div>
-      <h2 className="text-lg sm:text-xl font-semibold text-zinc-50 tracking-tight">
+      <h2 className="text-base sm:text-lg font-semibold text-zinc-50 tracking-tight">
         Nenhum grupo cadastrado ainda
       </h2>
-      <p className="text-sm text-zinc-400 mt-2 leading-relaxed">
+      <p className="text-sm text-zinc-400 mt-1.5 leading-relaxed">
         Crie um grupo para começar a adicionar membros, lançar despesas e acompanhar quem deve quanto para quem.
       </p>
       <button
         type="button"
         onClick={onOpenCreateModal}
-        className="mt-6 inline-flex items-center gap-2 h-11 sm:h-12 px-5 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-sm sm:text-[15px] active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+        className="mt-5 inline-flex items-center gap-2 h-10 sm:h-9 px-4 rounded-md bg-accent hover:bg-accent-hover text-accent-fg font-medium text-sm transition-colors cursor-pointer shadow-sm"
       >
         <Plus className="w-4 h-4 stroke-[2.5]" />
         Criar meu primeiro grupo

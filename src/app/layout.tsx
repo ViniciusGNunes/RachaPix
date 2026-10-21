@@ -22,7 +22,7 @@ const handjet = Handjet({
 });
 
 export const metadata: Metadata = {
-  title: 'RachaConta — Divida contas e organize despesas com Pix',
+  title: 'RachaPix — Divida contas e organize despesas com Pix',
   description:
     'Rache contas rapidamente com Pix Copia e Cola / QR Code ou gerencie despesas compartilhadas em grupos de amigos, república ou viagens.',
   manifest: `${basePath}/manifest.webmanifest`,
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     icon: `${basePath}/icon.svg`,
     apple: `${basePath}/icon.svg`,
   },
-  appleWebApp: { capable: true, title: 'RachaConta', statusBarStyle: 'black-translucent' },
+  appleWebApp: { capable: true, title: 'RachaPix', statusBarStyle: 'black-translucent' },
 };
 
 // Aplica o tema antes da pintura (evita flash). Preferência: localStorage 'theme' = light | dark; ausente = sistema.

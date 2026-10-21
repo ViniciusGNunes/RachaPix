@@ -19,77 +19,76 @@ export function HomeGroupsPanel({ savedGroups }: HomeGroupsPanelProps) {
   return (
     <section
       aria-labelledby="home-groups-title"
-      className="relative overflow-hidden flex flex-col gap-8 rounded-3xl border border-zinc-800/80 bg-gradient-to-br from-zinc-800/30 via-zinc-900/40 to-zinc-900/20 p-6 sm:p-10 lg:p-12"
+      className="flex flex-col gap-6 rounded-lg border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6 lg:p-8"
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-32 -left-32 h-80 w-80 rounded-full bg-zinc-500/10 blur-3xl"
-      />
-
-      <div className="relative space-y-5">
-        <div className="w-14 h-14 rounded-2xl bg-zinc-800/80 border border-zinc-700/60 flex items-center justify-center text-zinc-200">
-          <Users className="w-7 h-7" />
+      <div className="space-y-4">
+        <div className="w-10 h-10 rounded-md bg-zinc-800 border border-zinc-700/60 flex items-center justify-center text-zinc-200">
+          <Users className="w-5 h-5" />
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
+          <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
             República, viagem, amigos
           </p>
           <h2
             id="home-groups-title"
-            className="mt-2 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-zinc-50"
+            className="mt-1.5 text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-50"
           >
             Grupos de despesas
           </h2>
-          <p className="mt-3 text-base sm:text-lg text-zinc-400 leading-relaxed max-w-xl">
+          <p className="mt-2 text-sm sm:text-base text-zinc-400 leading-relaxed max-w-xl">
             Despesas contínuas num só lugar: registre os gastos e veja quem paga quem, sem planilha.
           </p>
         </div>
-        <Link
-          href="/despesas"
-          className="group h-14 px-6 rounded-2xl bg-zinc-100 text-zinc-950 hover:bg-white text-base font-semibold transition-all active:scale-[0.99] inline-flex items-center justify-between gap-6 cursor-pointer"
-        >
-          Abrir meus grupos
-          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-        </Link>
+        <div>
+          <Link
+            href="/despesas"
+            className="group h-10 sm:h-9 px-4 rounded-md bg-zinc-100 text-zinc-950 hover:bg-white text-sm font-semibold transition-all active:scale-[0.99] inline-flex items-center justify-between gap-4 cursor-pointer"
+          >
+            Abrir meus grupos
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
       </div>
 
-      <ul className="relative grid gap-3 sm:grid-cols-2">
+      <ul className="divide-y divide-zinc-800 border-y border-zinc-800">
         {FEATURES.map(({ icon: Icon, title, text }) => (
-          <li key={title} className="rounded-2xl border border-zinc-800/80 bg-zinc-950/40 p-4 space-y-2">
-            <Icon className="w-5 h-5 text-accent" />
-            <p className="text-sm font-semibold text-zinc-100">{title}</p>
-            <p className="text-xs text-zinc-400 leading-relaxed">{text}</p>
+          <li key={title} className="py-2.5 sm:py-3 flex items-start gap-3">
+            <Icon className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-zinc-100">{title}</p>
+              <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">{text}</p>
+            </div>
           </li>
         ))}
       </ul>
 
-      <div className="relative mt-auto">
+      <div className="mt-auto space-y-4">
         {savedGroups.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <div className="flex items-center justify-between">
-              <h3 className="text-[13px] font-medium text-zinc-400">Seus grupos</h3>
-              <span className="text-xs text-zinc-500">Salvos neste navegador</span>
+              <h3 className="text-xs font-medium text-zinc-400">Seus grupos</h3>
+              <span className="text-xs text-zinc-400">Salvos neste navegador</span>
             </div>
-            <div className="bg-zinc-900/40 rounded-2xl border border-zinc-800/80 divide-y divide-zinc-800/80 overflow-hidden">
+            <div className="rounded-md border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
               {savedGroups.slice(0, 6).map((group) => (
                 <Link
                   key={group.id}
                   href={groupPath(group.id)}
-                  className="p-4 flex items-center gap-3 hover:bg-zinc-900/50 transition-colors cursor-pointer"
+                  className="py-2 px-3 flex items-center gap-3 hover:bg-zinc-800/40 transition-colors cursor-pointer"
                 >
-                  <span className="w-9 h-9 rounded-full bg-accent/15 text-accent border border-accent/30 font-semibold flex items-center justify-center text-sm shrink-0">
+                  <span className="w-7 h-7 rounded-full bg-accent/15 text-accent border border-accent/30 font-semibold flex items-center justify-center text-xs shrink-0">
                     {(group.name ?? 'G').charAt(0).toUpperCase()}
                   </span>
-                  <span className="min-w-0 flex-1 text-sm font-semibold text-zinc-100 truncate">
+                  <span className="min-w-0 flex-1 text-sm font-medium text-zinc-100 truncate">
                     {group.name ?? 'Grupo sem nome'}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-zinc-500 shrink-0" />
+                  <ArrowRight className="w-4 h-4 text-zinc-400 shrink-0" />
                 </Link>
               ))}
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-zinc-800 p-5 text-sm text-zinc-500 leading-relaxed">
+          <div className="rounded-md border border-dashed border-zinc-800 p-4 text-xs sm:text-sm text-zinc-400 leading-relaxed">
             Nenhum grupo salvo neste navegador ainda. Crie um e convide todos por link.
           </div>
         )}

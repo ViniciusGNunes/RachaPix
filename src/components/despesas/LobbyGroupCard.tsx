@@ -12,14 +12,14 @@ export function LobbyGroupCard({ group }: LobbyGroupCardProps) {
   return (
     <Link
       href={groupPath(group.id)}
-      className="group p-5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-900/70 border border-zinc-800/80 hover:border-zinc-700/80 transition-all flex flex-col justify-between gap-4 active:scale-[0.99] cursor-pointer"
+      className="group p-4 rounded-lg bg-zinc-900 hover:bg-zinc-800/60 border border-zinc-800 hover:border-zinc-700 transition-colors flex flex-col justify-between gap-3 cursor-pointer"
     >
       <div>
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="w-9 h-9 rounded-full bg-accent/15 text-accent border border-accent/30 font-semibold flex items-center justify-center text-sm shrink-0">
+        <div className="flex items-center justify-between gap-2 mb-2.5">
+          <div className="w-8 h-8 rounded-full bg-accent/15 text-accent border border-accent/30 font-semibold flex items-center justify-center text-xs shrink-0">
             {group.name.charAt(0).toUpperCase()}
           </div>
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-800/80 border border-zinc-700/60 text-zinc-400">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-800 border border-zinc-700 text-zinc-300">
             {group.memberCount} {group.memberCount === 1 ? 'membro' : 'membros'}
           </span>
         </div>
@@ -32,9 +32,9 @@ export function LobbyGroupCard({ group }: LobbyGroupCardProps) {
           </p>
         )}
       </div>
-      <div className="pt-3 border-t border-zinc-800/80 flex items-baseline justify-between">
+      <div className="pt-2.5 border-t border-zinc-800 flex items-baseline justify-between">
         <span className="text-xs text-zinc-400">Total gasto</span>
-        <span className="text-base sm:text-lg font-bold text-zinc-50 tabular-nums">
+        <span className="text-base font-semibold text-zinc-50 tabular-nums">
           <Money value={group.totalSpent} />
         </span>
       </div>

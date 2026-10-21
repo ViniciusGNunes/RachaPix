@@ -33,7 +33,7 @@ export default function DespesasPage() {
   } = useLobbyCreateGroup(reloadSaved);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 lg:pt-4 pb-28 lg:pb-12 w-full space-y-6 lg:space-y-6 animate-fade-up">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 lg:pt-4 pb-28 lg:pb-12 w-full space-y-6 animate-fade-up">
       <LobbyHeader onOpenCreateModal={() => setIsModalOpen(true)} />
 
       {loading ? (

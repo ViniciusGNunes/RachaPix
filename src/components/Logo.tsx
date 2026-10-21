@@ -10,7 +10,7 @@ export function LogoMark({ className = 'w-8 h-8 md:w-9 md:h-9' }: Readonly<{ cla
       className={`${className} shrink-0 transition-transform`}
       aria-hidden="true"
     >{/* quadrado */}
-      <rect width="32" height="32" rx="9" fill="#34d399" />
+      <rect width="32" height="32" rx="8" fill="#34d399" />
       <path d={LOGO_PATH} fill="#052e22" shapeRendering="crispEdges" />
     </svg>
   );

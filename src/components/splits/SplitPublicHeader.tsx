@@ -22,13 +22,13 @@ export function SplitPublicHeader({
   const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   return (
-    <header className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6 space-y-5 shadow-sm backdrop-blur-sm">
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+    <header className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 sm:p-5 space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-50 break-words">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-50 break-words">
             {split.title}
           </h1>
-          <p className="text-sm text-zinc-400 mt-1">
+          <p className="text-xs sm:text-sm text-zinc-400 mt-1">
             {split.receiverName} &middot; {formatDate(split.createdAt)}
           </p>
         </div>
@@ -37,7 +37,7 @@ export function SplitPublicHeader({
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <PaidProgress paid={split.paidCount} total={split.participants.length} pct={progressPct} />
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm text-zinc-400">
           <span>
@@ -52,7 +52,7 @@ export function SplitPublicHeader({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-zinc-800/60">
+      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-zinc-800">
         <CopyButton
           text={pageUrl}
           label="Copiar link"
@@ -69,15 +69,15 @@ export function SplitPublicHeader({
                 url: pageUrl,
               })
             }
-            className="inline-flex items-center gap-1.5 px-3.5 min-h-11 text-sm rounded-xl border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 font-medium transition active:scale-[0.98] cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 h-9 text-xs sm:text-sm rounded-md border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-medium transition-colors cursor-pointer"
           >
-            <Share2 className="w-4 h-4" /> Compartilhar
+            <Share2 className="w-3.5 h-3.5" /> Compartilhar
           </button>
         )}
         {savedToken && (
           <Link
             href={splitAdminPath(split.slug, savedToken)}
-            className="ml-auto text-sm font-medium text-accent hover:text-accent-hover min-h-11 flex items-center transition"
+            className="ml-auto text-xs sm:text-sm font-medium text-accent hover:text-accent-hover h-9 flex items-center transition-colors"
           >
             Painel do organizador &rarr;
           </Link>

@@ -1,6 +1,6 @@
-# RachaConta — Frontend
+# RachaPix — Frontend
 
-Interface web do **RachaConta**, aplicação para divisão de contas e gestão de despesas compartilhadas com integração Pix (Copia e Cola e QR Code).
+Interface web do **RachaPix**, aplicação para divisão de contas e gestão de despesas compartilhadas com integração Pix (Copia e Cola e QR Code).
 
 ## Stack Tecnológica
 

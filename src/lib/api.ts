@@ -1,7 +1,7 @@
 import { getGroupCredentials } from './storage';
 import { toast } from '@/components/ui/Toast';
 
-// RachaConta - Typed API Client (docs/API.md)
+// RachaPix - Typed API Client (docs/API.md)
 
 export type SplitMode = 'Equal' | 'Custom';
 export type PixKeyType = 'Cpf' | 'Cnpj' | 'Email' | 'Phone' | 'Random';

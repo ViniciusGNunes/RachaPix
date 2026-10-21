@@ -3,7 +3,7 @@
  * Edite os valores abaixo conforme os dados da sua empresa ou operação.
  */
 export const EMAIL_CONTATO = 'vini.gn14@gmail.com';
-export const SUPPLIER_NAME = 'RachaConta';
+export const SUPPLIER_NAME = 'RachaPix';
 export const LAST_UPDATED = '18/10/2026';
 
 /**
@@ -11,13 +11,13 @@ export const LAST_UPDATED = '18/10/2026';
  * Texto verbatim conforme scratchpad/termos.md.
  */
 export const SHORT_LEGAL_NOTICE =
-  'O RachaConta apenas calcula divisões e gera QR Codes Pix; não processa, intermedeia nem garante pagamentos. Confira sempre os dados no seu banco antes de pagar. Você é responsável pelas informações que digita.';
+  'O RachaPix apenas calcula divisões e gera QR Codes Pix; não processa, intermedeia nem garante pagamentos. Confira sempre os dados no seu banco antes de pagar. Você é responsável pelas informações que digita.';
 
 /**
  * Nota de projeto pessoal, exibida na identificação e no rodapé.
  */
 export const PROJECT_NOTE =
-  'RachaConta é um projeto pessoal, sem fins comerciais.';
+  'RachaPix é um projeto pessoal, sem fins comerciais.';
 
 /**
  * Texto do checkbox de consentimento.
@@ -38,7 +38,7 @@ export const LEGAL_TERMS_CLAUSES: LegalClause[] = [
   {
     number: 1,
     title: 'Natureza do serviço',
-    body: 'O RachaConta é uma ferramenta gratuita de cálculo e organização de divisões de contas. O site não é instituição financeira, de pagamento ou de crédito. Ele não recebe, guarda, intermedeia nem transfere valores. Também não tem acesso a contas bancárias, senhas ou dados de cartão.',
+    body: 'O RachaPix é uma ferramenta gratuita de cálculo e organização de divisões de contas. O site não é instituição financeira, de pagamento ou de crédito. Ele não recebe, guarda, intermedeia nem transfere valores. Também não tem acesso a contas bancárias, senhas ou dados de cartão.',
   },
   {
     number: 2,
@@ -58,7 +58,7 @@ export const LEGAL_TERMS_CLAUSES: LegalClause[] = [
   {
     number: 5,
     title: 'Limitação de responsabilidade',
-    body: 'Na máxima extensão permitida pela lei, o RachaConta não se responsabiliza por perdas, golpes, erros de digitação, chaves incorretas, divergências de valores, disputas entre participantes ou qualquer movimentação financeira feita com base nas informações do site. Isso não exclui a responsabilidade que a legislação não permite afastar.',
+    body: 'Na máxima extensão permitida pela lei, o RachaPix não se responsabiliza por perdas, golpes, erros de digitação, chaves incorretas, divergências de valores, disputas entre participantes ou qualquer movimentação financeira feita com base nas informações do site. Isso não exclui a responsabilidade que a legislação não permite afastar.',
   },
   {
     number: 6,

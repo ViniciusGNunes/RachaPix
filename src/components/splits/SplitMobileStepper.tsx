@@ -7,10 +7,10 @@ interface SplitMobileStepperProps {
 
 export function SplitMobileStepper({ step, labels }: SplitMobileStepperProps) {
   return (
-    <div className="lg:hidden mb-6 space-y-2">
-      <div className="grid grid-cols-3 gap-2">
+    <div className="lg:hidden mb-5 space-y-1.5">
+      <div className="grid grid-cols-3 gap-1.5">
         {labels.map((_, i) => (
-          <div key={i} className="h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+          <div key={i} className="h-1 rounded-full bg-zinc-800 overflow-hidden">
             <div
               className={`h-full bg-accent transition-all duration-300 ${
                 i <= step ? 'w-full' : 'w-0'

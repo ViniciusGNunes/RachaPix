@@ -204,11 +204,11 @@ export function ExpenseModal({
       description="Registre os detalhes e como o valor será distribuído entre os membros."
       maxWidth="xl"
     >
-      <form onSubmit={handleSaveExpense} className="space-y-4">
+      <form onSubmit={handleSaveExpense} className="space-y-3.5">
         {expenseFormError && (
           <div
             role="alert"
-            className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs flex items-center gap-2"
+            className="p-3 rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs flex items-center gap-2"
           >
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
             <span>{expenseFormError}</span>
@@ -216,7 +216,7 @@ export function ExpenseModal({
         )}
 
         {expenseToEdit && (expenseToEdit.createdByName || expenseToEdit.updatedByName) && (
-          <div className="p-3 rounded-xl bg-zinc-950/60 border border-zinc-800/80 text-xs text-zinc-400">
+          <div className="p-2.5 rounded-md bg-zinc-950 border border-zinc-800 text-xs text-zinc-400">
             {expenseToEdit.createdByName && (
               <span>Criada por <strong className="text-zinc-200">{expenseToEdit.createdByName}</strong></span>
             )}
@@ -226,9 +226,9 @@ export function ExpenseModal({
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="sm:col-span-2">
-            <label htmlFor="expense-desc" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+            <label htmlFor="expense-desc" className="block text-[13px] font-medium text-zinc-400 mb-1">
               Descrição *
             </label>
             <input
@@ -238,12 +238,12 @@ export function ExpenseModal({
               placeholder="Ex: Compras no Supermercado, Aluguel, Combustível"
               value={expenseDesc}
               onChange={(e) => setExpenseDesc(e.target.value)}
-              className="w-full h-11 px-3.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors"
+              className="w-full h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm placeholder:text-zinc-400 focus:border-accent focus:outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label htmlFor="expense-amount" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+            <label htmlFor="expense-amount" className="block text-[13px] font-medium text-zinc-400 mb-1">
               Valor Total (R$) *
             </label>
             <input
@@ -256,12 +256,12 @@ export function ExpenseModal({
               placeholder="0.00"
               value={expenseAmountStr}
               onChange={(e) => setExpenseAmountStr(e.target.value)}
-              className="w-full h-11 px-3.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm font-semibold tabular-nums placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors"
+              className="w-full h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm font-semibold tabular-nums placeholder:text-zinc-400 focus:border-accent focus:outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label htmlFor="expense-date" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+            <label htmlFor="expense-date" className="block text-[13px] font-medium text-zinc-400 mb-1">
               Data *
             </label>
             <input
@@ -270,51 +270,51 @@ export function ExpenseModal({
               required
               value={expenseDate}
               onChange={(e) => setExpenseDate(e.target.value)}
-              className="w-full h-11 px-3.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm focus:border-accent focus:outline-none transition-colors"
+              className="w-full h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm focus:border-accent focus:outline-none transition-colors"
             />
           </div>
 
           <div>
-            <span className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+            <span className="block text-[13px] font-medium text-zinc-400 mb-1">
               Categoria *
             </span>
             <Select
               value={expenseCategory}
               onChange={(value) => setExpenseCategory(value as ExpenseCategory)}
               options={CATEGORIES.map((c) => ({ value: c, label: CATEGORY_LABELS[c] }))}
-              triggerClassName="px-3.5 py-2 h-11 rounded-xl text-sm"
+              triggerClassName="px-3 py-1.5 h-10 sm:h-9 rounded-md text-sm"
             />
           </div>
 
           <div>
-            <span className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+            <span className="block text-[13px] font-medium text-zinc-400 mb-1">
               Quem Pagou? *
             </span>
             <Select
               value={expensePaidBy}
               onChange={(value) => setExpensePaidBy(value)}
               options={members.map((mb) => ({ value: mb.id, label: mb.name }))}
-              triggerClassName="px-3.5 py-2 h-11 rounded-xl text-sm font-medium"
+              triggerClassName="px-3 py-1.5 h-10 sm:h-9 rounded-md text-sm font-medium"
             />
           </div>
         </div>
 
         {/* Division Mode */}
-        <div className="pt-2 space-y-3">
+        <div className="pt-1.5 space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-[13px] font-medium text-zinc-400">
               Divisão entre Membros *
             </span>
-            <div className="inline-flex p-1 rounded-xl bg-zinc-950/60 border border-zinc-800/80 gap-1">
+            <div className="inline-flex p-0.5 rounded-md bg-zinc-950 border border-zinc-800 gap-0.5">
               {(['Equal', 'Custom', 'Percentage'] as ShareMode[]).map((mode) => (
                 <button
                   key={mode}
                   type="button"
                   onClick={() => setExpenseShareMode(mode)}
-                  className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-sm text-xs font-medium transition cursor-pointer ${
                     expenseShareMode === mode
-                      ? 'bg-zinc-800 text-accent font-semibold shadow-sm'
-                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50'
+                      ? 'bg-zinc-800 text-zinc-100 font-semibold'
+                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
                   }`}
                 >
                   {mode === 'Equal'
@@ -327,7 +327,7 @@ export function ExpenseModal({
             </div>
           </div>
 
-          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+          <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
             {expenseShares.map((s) => {
               const member = members.find((m) => m.id === s.memberId);
               if (!member) return null;
@@ -335,7 +335,7 @@ export function ExpenseModal({
               return (
                 <div
                   key={s.memberId}
-                  className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800/80 text-xs"
+                  className="flex items-center justify-between p-2 rounded-md bg-zinc-950 border border-zinc-800 text-xs"
                 >
                   <label className="flex items-center gap-2 cursor-pointer select-none">
                     {expenseShareMode === 'Equal' && (
@@ -361,7 +361,7 @@ export function ExpenseModal({
 
                   {expenseShareMode === 'Custom' && (
                     <div className="flex items-center gap-1.5 w-32">
-                      <span className="text-zinc-500 font-medium">R$</span>
+                      <span className="text-zinc-400 font-medium">R$</span>
                       <input
                         type="number"
                         inputMode="decimal"
@@ -378,7 +378,7 @@ export function ExpenseModal({
                             )
                           )
                         }
-                        className="w-full h-8 px-2 rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-50 text-right font-semibold tabular-nums focus:border-accent focus:outline-none"
+                        className="w-full h-7 px-2 rounded-sm border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm text-right font-semibold tabular-nums focus:border-accent focus:outline-none"
                       />
                     </div>
                   )}
@@ -402,9 +402,9 @@ export function ExpenseModal({
                             )
                           )
                         }
-                        className="w-full h-8 px-2 rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-50 text-right font-semibold tabular-nums focus:border-accent focus:outline-none"
+                        className="w-full h-7 px-2 rounded-sm border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm text-right font-semibold tabular-nums focus:border-accent focus:outline-none"
                       />
-                      <span className="text-zinc-500 font-medium">%</span>
+                      <span className="text-zinc-400 font-medium">%</span>
                     </div>
                   )}
                 </div>
@@ -414,7 +414,7 @@ export function ExpenseModal({
         </div>
 
         <div>
-          <label htmlFor="expense-notes" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+          <label htmlFor="expense-notes" className="block text-[13px] font-medium text-zinc-400 mb-1">
             Observações (opcional)
           </label>
           <input
@@ -423,22 +423,22 @@ export function ExpenseModal({
             placeholder="Ex: Compra parcelada, cupom aplicado..."
             value={expenseNotes}
             onChange={(e) => setExpenseNotes(e.target.value)}
-            className="w-full h-11 px-3.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors"
+            className="w-full h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm placeholder:text-zinc-400 focus:border-accent focus:outline-none transition-colors"
           />
         </div>
 
-        <div className="flex justify-end gap-2.5 pt-3 border-t border-zinc-800/80">
+        <div className="flex justify-end gap-2.5 pt-3 border-t border-zinc-800">
           <button
             type="button"
             onClick={onClose}
-            className="h-11 px-4 rounded-xl border border-zinc-800 text-zinc-300 hover:text-zinc-50 hover:bg-zinc-800/60 font-semibold text-sm transition-colors active:scale-[0.98] cursor-pointer inline-flex items-center justify-center"
+            className="h-10 sm:h-9 px-3.5 rounded-md border border-zinc-800 text-zinc-300 hover:text-zinc-50 hover:bg-zinc-800 font-medium text-sm transition-colors cursor-pointer inline-flex items-center justify-center"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={savingExpense}
-            className="h-11 px-5 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-sm transition-all active:scale-[0.98] shadow-sm cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            className="h-10 sm:h-9 px-4 rounded-md bg-accent hover:bg-accent-hover text-accent-fg font-medium text-sm transition-colors shadow-sm cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2"
           >
             {savingExpense ? 'Salvando...' : 'Salvar Despesa'}
           </button>

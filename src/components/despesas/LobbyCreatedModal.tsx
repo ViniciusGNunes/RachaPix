@@ -40,7 +40,7 @@ export function LobbyCreatedModal({ createdGroup, onClose }: LobbyCreatedModalPr
           <button
             type="button"
             onClick={() => router.push(groupPath(createdGroup.id))}
-            className="w-full h-12 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-[15px] active:scale-[0.98] transition cursor-pointer"
+            className="w-full h-10 sm:h-9 rounded-md bg-accent hover:bg-accent-hover text-accent-fg font-medium text-sm transition-colors cursor-pointer shadow-sm"
           >
             Ir para o grupo
           </button>

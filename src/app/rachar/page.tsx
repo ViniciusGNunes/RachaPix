@@ -60,11 +60,11 @@ export default function RacharPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 lg:pt-4 pb-28 lg:pb-8 w-full animate-fade-up overflow-x-clip">
-      <div className="mb-8 lg:mb-4">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-5 lg:pt-4 pb-28 lg:pb-8 w-full animate-fade-up overflow-x-clip">
+      <div className="mb-6 lg:mb-4">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-50 transition-colors mb-3 lg:mb-1.5"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors mb-2.5 lg:mb-1.5"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Voltar
@@ -77,7 +77,7 @@ export default function RacharPage() {
       {errorMessage && (
         <div
           role="alert"
-          className="mb-6 p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-sm"
+          className="mb-5 p-3 rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-300 text-sm"
         >
           {errorMessage}
         </div>
@@ -88,9 +88,9 @@ export default function RacharPage() {
         <SplitMobileStepper step={step} labels={STEP_LABELS} />
 
         {/* Form Content: 2 Columns on desktop (lg+), 1 step at a time on mobile */}
-        <div className="lg:grid lg:grid-cols-12 lg:gap-6 lg:items-start space-y-6 lg:space-y-0">
+        <div className="lg:grid lg:grid-cols-12 lg:gap-6 lg:items-start space-y-5 lg:space-y-0">
           {/* Left Column (approx 60%): Steps 1 (Valor) & 2 (Pix) stacked */}
-          <div className="lg:col-span-6 space-y-6 lg:space-y-4">
+          <div className="lg:col-span-6 space-y-5 lg:space-y-4">
             <SplitStepValue
               step={step}
               slideDir={slideDir}
@@ -121,7 +121,7 @@ export default function RacharPage() {
           </div>
 
           {/* Right Column (approx 40%): Step 3 (Quem vai pagar) & Sticky Summary Card */}
-          <div className="lg:col-span-6 space-y-6 lg:space-y-4">
+          <div className="lg:col-span-6 space-y-5 lg:space-y-4">
             <SplitStepParticipants
               step={step}
               slideDir={slideDir}

@@ -58,17 +58,17 @@ export function LobbyCreateGroupModal({
         {modalError && (
           <div
             role="alert"
-            className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs flex items-center gap-2"
+            className="p-3 rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs flex items-center gap-2"
           >
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
             <span>{modalError}</span>
           </div>
         )}
 
-        {/* Step-like Card 1: Dados do grupo */}
-        <section className="p-4 sm:p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 space-y-4">
-          <h3 className="flex items-center gap-2.5 text-sm font-semibold text-zinc-50">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/15 border border-accent/30 text-xs font-semibold text-accent">
+        {/* Section 1: Dados do grupo */}
+        <section className="space-y-3 pb-4 border-b border-zinc-800">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-50">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/15 border border-accent/30 text-xs font-semibold text-accent">
               1
             </span>{' '}
             Dados do grupo
@@ -85,7 +85,7 @@ export function LobbyCreateGroupModal({
               placeholder="Ex: Viagem Florianópolis, Apê 42, Churrasco"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full h-11 px-3.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors"
+              className="w-full h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm placeholder:text-zinc-400 focus:border-accent focus:outline-none transition-colors"
             />
           </div>
 
@@ -99,16 +99,16 @@ export function LobbyCreateGroupModal({
               placeholder="Ex: Despesas gerais e compras coletivas"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full h-11 px-3.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors"
+              className="w-full h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm placeholder:text-zinc-400 focus:border-accent focus:outline-none transition-colors"
             />
           </div>
         </section>
 
-        {/* Step-like Card 2: Membros Iniciais */}
-        <section className="p-4 sm:p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 space-y-3.5">
+        {/* Section 2: Membros Iniciais */}
+        <section className="space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="flex items-center gap-2.5 text-sm font-semibold text-zinc-50">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/15 border border-accent/30 text-xs font-semibold text-accent">
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-50">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/15 border border-accent/30 text-xs font-semibold text-accent">
                 2
               </span>{' '}
               Membros iniciais
@@ -116,23 +116,23 @@ export function LobbyCreateGroupModal({
             <button
               type="button"
               onClick={onAddMember}
-              className="inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-xl border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 hover:border-zinc-700 text-xs font-medium text-zinc-200 transition-all active:scale-[0.98] cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-md border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 hover:border-zinc-700 text-xs font-medium text-zinc-200 transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5 text-accent" />
               Adicionar Membro
             </button>
           </div>
 
-          <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
             {members.map((m, index) => {
               const initial = m.name.trim() ? m.name.trim().charAt(0).toUpperCase() : String(index + 1);
               return (
                 <div
                   key={m.id}
-                  className="p-3 rounded-xl bg-zinc-950/60 border border-zinc-800/80 flex flex-col gap-2.5 animate-fade-in"
+                  className="p-2.5 rounded-md bg-zinc-900 border border-zinc-800 flex flex-col gap-2"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center font-semibold text-xs shrink-0 select-none bg-zinc-800 text-zinc-300 border border-zinc-700/60">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center font-semibold text-xs shrink-0 select-none bg-zinc-800 text-zinc-300 border border-zinc-700">
                       {initial}
                     </div>
                     <input
@@ -140,7 +140,7 @@ export function LobbyCreateGroupModal({
                       placeholder={`Nome ${index + 1}`}
                       value={m.name}
                       onChange={(e) => onUpdateMember(m.id, { name: e.target.value })}
-                      className="flex-1 min-w-0 h-10 px-3 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors"
+                      className="flex-1 min-w-0 h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm placeholder:text-zinc-400 focus:border-accent focus:outline-none transition-colors"
                     />
                     <button
                       type="button"
@@ -148,16 +148,16 @@ export function LobbyCreateGroupModal({
                       disabled={members.length <= 1}
                       aria-label="Remover membro"
                       title="Remover membro"
-                      className="p-2 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-zinc-500 cursor-pointer shrink-0"
+                      className="p-1.5 rounded-md text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-zinc-400 cursor-pointer shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-                  <div className="flex items-center gap-2 pl-9.5">
+                  <div className="flex items-center gap-2 pl-8">
                     <Select
                       ariaLabel="Tipo da chave Pix"
                       className="w-32 shrink-0"
-                      triggerClassName="px-2.5 py-1.5 h-10 text-xs rounded-xl"
+                      triggerClassName="px-2.5 py-1.5 h-10 sm:h-9 text-xs rounded-md"
                       value={m.pixKeyType}
                       onChange={(value) => {
                         const nextType = value as PixKeyType;
@@ -176,7 +176,7 @@ export function LobbyCreateGroupModal({
                       onChange={(e) =>
                         onUpdateMember(m.id, { pixKey: maskPixKey(e.target.value, m.pixKeyType) })
                       }
-                      className="flex-1 min-w-0 h-10 px-3 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-xs font-mono placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors"
+                      className="flex-1 min-w-0 h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm font-mono placeholder:text-zinc-400 focus:border-accent focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
@@ -185,18 +185,18 @@ export function LobbyCreateGroupModal({
           </div>
         </section>
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-800/80">
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-zinc-800">
           <button
             type="button"
             onClick={onClose}
-            className="h-11 px-4 rounded-xl border border-zinc-800 text-zinc-300 hover:text-zinc-50 hover:bg-zinc-800/60 font-semibold text-sm transition-colors active:scale-[0.98] cursor-pointer inline-flex items-center justify-center"
+            className="h-10 sm:h-9 px-3.5 rounded-md border border-zinc-800 text-zinc-300 hover:text-zinc-50 hover:bg-zinc-800 font-medium text-sm transition-colors cursor-pointer inline-flex items-center justify-center"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="h-11 px-5 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-sm transition-all active:scale-[0.98] shadow-sm cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            className="h-10 sm:h-9 px-4 rounded-md bg-accent hover:bg-accent-hover text-accent-fg font-medium text-sm transition-colors shadow-sm cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2"
           >
             {isSubmitting ? 'Criando...' : 'Criar Grupo'}
           </button>

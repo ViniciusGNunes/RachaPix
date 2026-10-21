@@ -59,9 +59,9 @@ export function ContestExpenseModal({
       }
       maxWidth="md"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3.5">
         <div>
-          <label htmlFor="contest-comment-input" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+          <label htmlFor="contest-comment-input" className="block text-[13px] font-medium text-zinc-400 mb-1">
             Motivo da contestação (opcional)
           </label>
           <textarea
@@ -71,25 +71,25 @@ export function ContestExpenseModal({
             value={contestComment}
             onChange={(e) => setContestComment(e.target.value)}
             placeholder="Ex: Não consumi esse item ou a divisão de valores está incorreta"
-            className="w-full p-3.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-sm placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors resize-none"
+            className="w-full p-2.5 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm placeholder:text-zinc-400 focus:border-accent focus:outline-none transition-colors resize-none"
           />
-          <span className="block text-right text-xs text-zinc-500 mt-1">
+          <span className="block text-right text-xs text-zinc-400 mt-1">
             {contestComment.length}/200 caracteres
           </span>
         </div>
 
-        <div className="flex justify-end gap-2.5 pt-3 border-t border-zinc-800/80">
+        <div className="flex justify-end gap-2.5 pt-3 border-t border-zinc-800">
           <button
             type="button"
             onClick={onClose}
-            className="h-11 px-4 rounded-xl border border-zinc-800 text-zinc-300 hover:text-zinc-50 hover:bg-zinc-800/60 font-semibold text-sm transition-colors active:scale-[0.98] cursor-pointer inline-flex items-center justify-center"
+            className="h-10 sm:h-9 px-3.5 rounded-md border border-zinc-800 text-zinc-300 hover:text-zinc-50 hover:bg-zinc-800 font-medium text-sm transition-colors cursor-pointer inline-flex items-center justify-center"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={confirmExpenseMutation.isPending}
-            className="h-11 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-semibold text-sm transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 inline-flex items-center justify-center"
+            className="h-10 sm:h-9 px-4 rounded-md bg-amber-500 hover:bg-amber-600 text-zinc-950 font-medium text-sm transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center justify-center"
           >
             {confirmExpenseMutation.isPending ? 'Enviando...' : 'Confirmar Contestação'}
           </button>

@@ -23,26 +23,26 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md pt-[env(safe-area-inset-top)]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 md:h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 font-bold text-lg md:text-xl text-zinc-50 group">
-            <LogoMark className="w-8 h-8 md:w-9 md:h-9 transition-transform group-hover:scale-105" />
-            <span className="font-brand text-2xl md:text-[1.65rem] font-bold tracking-[0.04em] text-zinc-100">
-              Racha<span className="text-accent">Conta</span>
+      <header className="sticky top-0 z-40 w-full border-b border-zinc-800 bg-zinc-950 pt-[env(safe-area-inset-top)]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5 font-bold text-lg text-zinc-50 group">
+            <LogoMark className="w-7 h-7 md:w-8 md:h-8" />
+            <span className="font-brand text-2xl md:text-[1.5rem] font-bold tracking-[0.04em] text-zinc-100">
+              Racha<span className="text-accent">Pix</span>
               <span className="cursor-blink text-accent">_</span>
             </span>
           </Link>
 
           <div className="flex items-center gap-2">
-            <nav className="hidden md:flex items-center gap-1.5" aria-label="Principal">
+            <nav className="hidden md:flex items-center gap-1" aria-label="Principal">
               {navLinks.map(({ href, label, icon: Icon, exact }) => (
                 <Link
                   key={href}
                   href={href}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                     isActive(href, exact)
-                      ? 'bg-accent-muted text-accent font-semibold shadow-sm'
-                      : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/60'
+                      ? 'bg-accent/15 text-accent'
+                      : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -58,7 +58,7 @@ export function Navbar() {
       {/* Mobile: barra de abas fixa embaixo (alcance do polegar) */}
       <nav
         aria-label="Principal"
-        className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
+        className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-zinc-800 bg-zinc-950 pb-[env(safe-area-inset-bottom)]"
       >
         <ul className="grid grid-cols-3">
           {navLinks.map(({ href, label, icon: Icon, exact }) => {
@@ -68,7 +68,7 @@ export function Navbar() {
                 <Link
                   href={href}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex flex-col items-center justify-center gap-1 h-16 text-xs font-medium transition-colors active:scale-95 ${
+                  className={`flex flex-col items-center justify-center gap-1 h-14 text-xs font-medium transition-colors active:scale-95 ${
                     active ? 'text-accent font-semibold' : 'text-zinc-400 hover:text-zinc-200'
                   }`}
                 >

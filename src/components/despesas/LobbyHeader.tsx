@@ -20,7 +20,7 @@ export function LobbyHeader({ onOpenCreateModal }: LobbyHeaderProps) {
       <button
         type="button"
         onClick={onOpenCreateModal}
-        className="fixed right-4 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 sm:static inline-flex items-center justify-center gap-2 h-11 sm:h-12 px-4 sm:px-5 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-sm sm:text-[15px] active:scale-[0.98] transition-all cursor-pointer shadow-lg sm:shadow-sm"
+        className="fixed right-4 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 sm:static inline-flex items-center justify-center gap-2 h-10 sm:h-9 px-4 sm:px-3.5 rounded-md bg-accent hover:bg-accent-hover text-accent-fg font-medium text-sm transition-colors cursor-pointer shadow-sm"
       >
         <Plus className="w-4 h-4 stroke-[2.5]" />
         <span>Novo Grupo</span>

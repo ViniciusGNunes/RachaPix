@@ -113,7 +113,7 @@ function GroupDetailContent() {
   const pendingSettlementsCount = settlements.filter((s) => s.status === 'Pending').length;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 lg:pt-4 pb-28 lg:pb-12 w-full space-y-6 lg:space-y-6 animate-fade-up">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 lg:pt-4 pb-28 lg:pb-12 w-full space-y-6 animate-fade-up">
       <GroupHeader
         group={group}
         isAdmin={isAdmin}
@@ -126,7 +126,7 @@ function GroupDetailContent() {
       />
 
       {/* Tabs Navigation */}
-      <div className="flex items-center p-1 rounded-xl bg-zinc-950/60 border border-zinc-800/80 overflow-x-auto gap-1">
+      <div className="flex items-center p-1 rounded-md bg-zinc-900 border border-zinc-800 overflow-x-auto gap-1">
         {(['expenses', 'balances', 'settlements', 'stats', 'members'] as TabType[]).map((tab) => {
           const suffix =
             tab === 'expenses'
@@ -141,10 +141,10 @@ function GroupDetailContent() {
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
-              className={`h-10 px-3.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all cursor-pointer flex-1 sm:flex-initial text-center ${
+              className={`h-9 sm:h-8 px-3 rounded-md text-xs sm:text-sm font-medium whitespace-nowrap transition-colors cursor-pointer flex-1 sm:flex-initial text-center ${
                 activeTab === tab
-                  ? 'bg-zinc-800 text-accent font-semibold shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50'
+                  ? 'bg-zinc-800 text-zinc-100 font-semibold'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
               }`}
             >
               {TAB_LABELS[tab]}{suffix}

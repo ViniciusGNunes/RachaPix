@@ -38,7 +38,7 @@ function PublicSplitContent() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 pb-28 md:pb-12 w-full space-y-6 animate-fade-up">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-10 w-full space-y-5 animate-fade-up">
       <SplitPublicHeader
         split={split}
         progressPct={progressPct}
@@ -48,13 +48,13 @@ function PublicSplitContent() {
       {actionError && (
         <div
           role="alert"
-          className="p-4 rounded-xl border border-rose-800/80 bg-rose-950/20 text-rose-300 text-sm flex items-center justify-between gap-3 animate-fade-in"
+          className="p-3 rounded-md border border-rose-800 bg-rose-950/30 text-rose-300 text-sm flex items-center justify-between gap-3 animate-fade-in"
         >
           <span>{actionError}</span>
           <button
             type="button"
             onClick={clearActionError}
-            className="text-sm font-medium hover:underline cursor-pointer min-h-11 px-2"
+            className="text-sm font-medium hover:underline cursor-pointer min-h-9 px-2"
           >
             Fechar
           </button>
@@ -62,7 +62,7 @@ function PublicSplitContent() {
       )}
 
       {ownerNotice && (
-        <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/60 text-sm text-zinc-300 flex items-center gap-2.5 animate-fade-in">
+        <div className="p-3 rounded-md border border-zinc-800 bg-zinc-900 text-sm text-zinc-300 flex items-center gap-2.5 animate-fade-in">
           <p>{ownerNotice}</p>
         </div>
       )}

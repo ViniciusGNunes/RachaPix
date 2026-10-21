@@ -92,11 +92,11 @@ export function MemberModal({
       title={memberToEdit ? 'Editar Membro' : 'Novo Membro'}
       maxWidth="md"
     >
-      <form onSubmit={handleSaveMember} className="space-y-4">
+      <form onSubmit={handleSaveMember} className="space-y-3.5">
         {memberError && (
           <div
             role="alert"
-            className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs flex items-center gap-2"
+            className="p-3 rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs flex items-center gap-2"
           >
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
             <span>{memberError}</span>
@@ -104,7 +104,7 @@ export function MemberModal({
         )}
 
         <div>
-          <label htmlFor="member-name" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+          <label htmlFor="member-name" className="block text-[13px] font-medium text-zinc-400 mb-1">
             Nome do Membro *
           </label>
           <input
@@ -114,13 +114,13 @@ export function MemberModal({
             placeholder="Ex: João, Maria, Pedro"
             value={memberName}
             onChange={(e) => setMemberName(e.target.value)}
-            className="w-full h-11 px-3.5 py-2 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors"
+            className="w-full h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm placeholder:text-zinc-400 focus:border-accent focus:outline-none transition-colors"
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <div>
-            <span className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+            <span className="block text-[13px] font-medium text-zinc-400 mb-1">
               Tipo Pix
             </span>
             <Select
@@ -131,12 +131,12 @@ export function MemberModal({
                 setMemberPixKey((current) => maskPixKey(current, nextType));
               }}
               options={PIX_KEY_TYPE_OPTIONS}
-              triggerClassName="px-2.5 py-2 h-11 rounded-xl text-sm"
+              triggerClassName="px-2.5 py-1.5 h-10 sm:h-9 rounded-md text-sm"
             />
           </div>
 
           <div className="sm:col-span-2">
-            <label htmlFor="member-pix-key" className="block text-[13px] font-medium text-zinc-400 mb-1.5">
+            <label htmlFor="member-pix-key" className="block text-[13px] font-medium text-zinc-400 mb-1">
               Chave Pix (opcional)
             </label>
             <input
@@ -146,23 +146,23 @@ export function MemberModal({
               placeholder={PIX_KEY_PLACEHOLDERS[memberPixKeyType]}
               value={memberPixKey}
               onChange={(e) => setMemberPixKey(maskPixKey(e.target.value, memberPixKeyType))}
-              className="w-full h-11 px-3.5 py-2 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-50 text-base md:text-sm font-mono placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors"
+              className="w-full h-10 sm:h-9 px-3 rounded-md border border-zinc-800 bg-zinc-950 text-zinc-100 text-sm font-mono placeholder:text-zinc-400 focus:border-accent focus:outline-none transition-colors"
             />
           </div>
         </div>
 
-        <div className="flex justify-end gap-2.5 pt-3 border-t border-zinc-800/80">
+        <div className="flex justify-end gap-2.5 pt-3 border-t border-zinc-800">
           <button
             type="button"
             onClick={onClose}
-            className="h-11 px-4 rounded-xl border border-zinc-800 text-zinc-300 hover:text-zinc-50 hover:bg-zinc-800/60 font-semibold text-sm transition-colors active:scale-[0.98] cursor-pointer inline-flex items-center justify-center"
+            className="h-10 sm:h-9 px-3.5 rounded-md border border-zinc-800 text-zinc-300 hover:text-zinc-50 hover:bg-zinc-800 font-medium text-sm transition-colors cursor-pointer inline-flex items-center justify-center"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={savingMember}
-            className="h-11 px-5 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-sm transition-all active:scale-[0.98] shadow-sm cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            className="h-10 sm:h-9 px-4 rounded-md bg-accent hover:bg-accent-hover text-accent-fg font-medium text-sm transition-colors shadow-sm cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2"
           >
             {savingMember ? 'Salvando...' : 'Salvar Membro'}
           </button>

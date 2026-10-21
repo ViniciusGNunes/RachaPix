@@ -49,16 +49,16 @@ export function MembersTab({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex justify-between items-center gap-3">
-        <h2 className="text-lg font-semibold text-zinc-50 tracking-tight">
+        <h2 className="text-base sm:text-lg font-semibold text-zinc-50 tracking-tight">
           Membros do Grupo ({group.members.length})
         </h2>
         {canWrite && (
           <button
             type="button"
             onClick={() => onOpenMemberModal()}
-            className="h-11 px-4 rounded-xl bg-accent hover:bg-accent-hover text-accent-fg text-sm font-semibold flex items-center gap-2 active:scale-[0.98] transition cursor-pointer shrink-0 shadow-sm"
+            className="h-10 sm:h-9 px-3.5 rounded-md bg-accent hover:bg-accent-hover text-accent-fg text-sm font-medium flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-sm"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" /> Adicionar Membro
           </button>
@@ -72,23 +72,23 @@ export function MembersTab({
         />
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {group.members.map((m) => {
           const canEditMember = isAdmin || (!!currentMemberId && m.id === currentMemberId);
 
           return (
             <div
               key={m.id}
-              className="p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 flex flex-col justify-between space-y-4 hover:border-zinc-700/80 transition-colors shadow-sm"
+              className="p-3.5 sm:p-4 rounded-lg bg-zinc-900 border border-zinc-800 flex flex-col justify-between space-y-3 hover:border-zinc-700 transition-colors"
             >
               <div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-accent/15 text-accent border border-accent/30 font-semibold flex items-center justify-center text-sm shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-accent/15 text-accent border border-accent/30 font-semibold flex items-center justify-center text-xs shrink-0">
                     {m.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <h3 className="font-semibold text-zinc-50 text-base truncate">
+                      <h3 className="font-semibold text-zinc-50 text-sm sm:text-base truncate">
                         {m.name}
                       </h3>
                       {m.id === currentMemberId && (
@@ -113,7 +113,7 @@ export function MembersTab({
                 </div>
               </div>
 
-              <div className="space-y-2 pt-3 border-t border-zinc-800/80">
+              <div className="space-y-2 pt-2.5 border-t border-zinc-800">
                 {resettingMemberId === m.id ? (
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                     <span className="text-zinc-400">Liberar acesso deste membro?</span>
@@ -122,26 +122,26 @@ export function MembersTab({
                         type="button"
                         disabled={resetMemberClaimMutation.isPending}
                         onClick={() => handleResetMemberClaim(m.id)}
-                        className="h-8 px-2.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold text-xs transition cursor-pointer disabled:opacity-50"
+                        className="h-7 px-2.5 rounded-md bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-medium text-xs transition cursor-pointer disabled:opacity-50"
                       >
                         {resetMemberClaimMutation.isPending ? 'Liberando...' : 'Confirmar'}
                       </button>
                       <button
                         type="button"
                         onClick={() => setResettingMemberId(null)}
-                        className="h-8 px-2.5 rounded-lg text-zinc-400 hover:text-zinc-200 text-xs transition cursor-pointer"
+                        className="h-7 px-2.5 rounded-md text-zinc-400 hover:text-zinc-200 text-xs transition cursor-pointer"
                       >
                         Cancelar
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-end gap-2 flex-wrap">
+                  <div className="flex items-center justify-end gap-1.5 flex-wrap">
                     {isAdmin && m.claimed && m.id !== currentMemberId && (
                       <button
                         type="button"
                         onClick={() => setResettingMemberId(m.id)}
-                        className="h-9 px-3 rounded-xl border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-50 transition active:scale-[0.98] text-xs font-medium flex items-center gap-1.5 cursor-pointer"
+                        className="h-8 px-2.5 rounded-md border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-50 transition text-xs font-medium flex items-center gap-1 cursor-pointer"
                         title="Permite que outra pessoa ou aparelho reivindique este membro"
                       >
                         <RefreshCw className="w-3.5 h-3.5" /> Liberar acesso
@@ -151,7 +151,7 @@ export function MembersTab({
                       <button
                         type="button"
                         onClick={() => onOpenMemberModal(m)}
-                        className="h-9 px-3 rounded-xl border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-200 hover:text-zinc-50 transition active:scale-[0.98] text-xs font-medium flex items-center gap-1.5 cursor-pointer"
+                        className="h-8 px-2.5 rounded-md border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 hover:text-zinc-50 transition text-xs font-medium flex items-center gap-1 cursor-pointer"
                       >
                         <Edit2 className="w-3.5 h-3.5" /> Editar
                       </button>
@@ -160,7 +160,7 @@ export function MembersTab({
                       <button
                         type="button"
                         onClick={() => onDeleteMember(m)}
-                        className="h-9 px-3 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 hover:text-rose-200 transition active:scale-[0.98] text-xs font-medium flex items-center gap-1.5 cursor-pointer"
+                        className="h-8 px-2.5 rounded-md border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 hover:text-rose-200 transition text-xs font-medium flex items-center gap-1 cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" /> Remover
                       </button>
