@@ -157,6 +157,22 @@ export interface GroupDto {
 export interface ClaimRequest {
   memberId?: string | null;
   newName?: string | null;
+  /** Free-text device name shown in the device list. */
+  label?: string | null;
+}
+
+export interface LinkCodeDto {
+  /** Single-use code, valid for a few minutes. */
+  code: string;
+  expiresAt: string;
+}
+
+export interface DeviceDto {
+  id: string;
+  label: string | null;
+  createdAt: string;
+  lastUsedAt: string | null;
+  isCurrent: boolean;
 }
 
 export interface ClaimResultDto {
@@ -527,6 +543,35 @@ export const api = {
       headers: { 'X-Group-Token': token },
       body: JSON.stringify(data),
     });
+  },
+
+  /** Generates a single-use code so another device can take over your member. */
+  createLinkCode(groupId: string): Promise<LinkCodeDto> {
+    return request<LinkCodeDto>(`/api/groups/${encodeURIComponent(groupId)}/members/me/link-codes`, {
+      method: 'POST',
+    });
+  },
+
+  /** Trades a link code for this device's own personal token. Uses the invite token on purpose. */
+  redeemLinkCode(groupId: string, code: string, label?: string): Promise<ClaimResultDto> {
+    const credentials = getGroupCredentials(groupId);
+    const token = credentials?.adminToken ?? credentials?.accessToken ?? '';
+    return request<ClaimResultDto>(`/api/groups/${encodeURIComponent(groupId)}/link-codes/redeem`, {
+      method: 'POST',
+      headers: { 'X-Group-Token': token },
+      body: JSON.stringify({ code, label }),
+    });
+  },
+
+  listDevices(groupId: string): Promise<DeviceDto[]> {
+    return request<DeviceDto[]>(`/api/groups/${encodeURIComponent(groupId)}/members/me/devices`);
+  },
+
+  revokeDevice(groupId: string, deviceId: string): Promise<void> {
+    return request<void>(
+      `/api/groups/${encodeURIComponent(groupId)}/members/me/devices/${encodeURIComponent(deviceId)}`,
+      { method: 'DELETE' }
+    );
   },
 
   /** Admin: replaces the invite token. The old invite link stops working. */
