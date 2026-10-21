@@ -25,7 +25,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run build
         env:
-          NEXT_PUBLIC_BASE_PATH: /racha-conta-front
+          NEXT_PUBLIC_BASE_PATH: ""
           NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
       - uses: actions/upload-pages-artifact@v3
         with:
