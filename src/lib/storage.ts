@@ -6,28 +6,58 @@ export interface SavedSplit {
   createdAt: string;
 }
 
+/** Safe wrapper around browser localStorage for SSR and restricted storage environments. */
+export const storage = {
+  getItem(key: string): string | null {
+    if (typeof window === 'undefined') return null;
+    try {
+      return window.localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  setItem(key: string, value: string): boolean {
+    if (typeof window === 'undefined') return false;
+    try {
+      window.localStorage.setItem(key, value);
+      return true;
+    } catch (err) {
+      console.error('Failed to save to localStorage:', err);
+      return false;
+    }
+  },
+  removeItem(key: string): boolean {
+    if (typeof window === 'undefined') return false;
+    try {
+      window.localStorage.removeItem(key);
+      return true;
+    } catch (err) {
+      console.error('Failed to remove from localStorage:', err);
+      return false;
+    }
+  },
+  getJSON<T>(key: string): T | null {
+    const raw = this.getItem(key);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return null;
+    }
+  },
+};
+
 const SPLITS_STORAGE_KEY = 'rachaconta_saved_splits';
 
 export function getSavedSplits(): SavedSplit[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(SPLITS_STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as SavedSplit[];
-  } catch {
-    return [];
-  }
+  const parsed = storage.getJSON<SavedSplit[]>(SPLITS_STORAGE_KEY);
+  return Array.isArray(parsed) ? parsed : [];
 }
 
 export function saveSplit(split: SavedSplit): void {
-  if (typeof window === 'undefined') return;
-  try {
-    const list = getSavedSplits().filter((s) => s.slug !== split.slug);
-    list.unshift(split);
-    localStorage.setItem(SPLITS_STORAGE_KEY, JSON.stringify(list.slice(0, 50)));
-  } catch (err) {
-    console.error('Failed to save split to localStorage:', err);
-  }
+  const list = getSavedSplits().filter((s) => s.slug !== split.slug);
+  list.unshift(split);
+  storage.setItem(SPLITS_STORAGE_KEY, JSON.stringify(list.slice(0, 50)));
 }
 
 const LAST_CITY_STORAGE_KEY = 'rachaconta_last_city';
@@ -38,26 +68,15 @@ export interface LastCity {
 }
 
 export function getLastCity(): LastCity | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem(LAST_CITY_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<LastCity>;
-    return typeof parsed.city === 'string' && parsed.city
-      ? { city: parsed.city, uf: parsed.uf ?? null }
-      : null;
-  } catch {
-    return null;
-  }
+  const parsed = storage.getJSON<Partial<LastCity>>(LAST_CITY_STORAGE_KEY);
+  if (!parsed) return null;
+  return typeof parsed.city === 'string' && parsed.city
+    ? { city: parsed.city, uf: parsed.uf ?? null }
+    : null;
 }
 
 export function saveLastCity(value: LastCity): void {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(LAST_CITY_STORAGE_KEY, JSON.stringify(value));
-  } catch {
-    // storage unavailable; the city just won't be remembered
-  }
+  storage.setItem(LAST_CITY_STORAGE_KEY, JSON.stringify(value));
 }
 
 const GROUPS_STORAGE_KEY = 'rachaconta_saved_groups';
@@ -73,15 +92,8 @@ export interface SavedGroup {
 }
 
 export function getSavedGroups(): SavedGroup[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(GROUPS_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as SavedGroup[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  const parsed = storage.getJSON<SavedGroup[]>(GROUPS_STORAGE_KEY);
+  return Array.isArray(parsed) ? parsed : [];
 }
 
 export function getGroupCredentials(id: string): SavedGroup | null {
@@ -89,56 +101,36 @@ export function getGroupCredentials(id: string): SavedGroup | null {
 }
 
 export function saveGroup(group: SavedGroup): void {
-  if (typeof window === 'undefined') return;
-  try {
-    const list = getSavedGroups();
-    const existing = list.find((g) => g.id === group.id);
-    const merged: SavedGroup = {
-      id: group.id,
-      name: group.name ?? existing?.name,
-      accessToken: group.accessToken ?? existing?.accessToken,
-      adminToken: group.adminToken ?? existing?.adminToken,
-      memberToken: group.memberToken ?? existing?.memberToken,
-      memberId: group.memberId ?? existing?.memberId,
-    };
-    const rest = list.filter((g) => g.id !== group.id);
-    localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify([merged, ...rest].slice(0, 100)));
-  } catch (err) {
-    console.error('Failed to save group to localStorage:', err);
-  }
+  const list = getSavedGroups();
+  const existing = list.find((g) => g.id === group.id);
+  const merged: SavedGroup = {
+    id: group.id,
+    name: group.name ?? existing?.name,
+    accessToken: group.accessToken ?? existing?.accessToken,
+    adminToken: group.adminToken ?? existing?.adminToken,
+    memberToken: group.memberToken ?? existing?.memberToken,
+    memberId: group.memberId ?? existing?.memberId,
+  };
+  const rest = list.filter((g) => g.id !== group.id);
+  storage.setItem(GROUPS_STORAGE_KEY, JSON.stringify([merged, ...rest].slice(0, 100)));
 }
 
 /** Drops the personal token (e.g. the admin freed this member), keeping invite/admin tokens. */
 export function forgetMemberIdentity(id: string): void {
-  if (typeof window === 'undefined') return;
-  try {
-    const list = getSavedGroups().map((g) =>
-      g.id === id ? { ...g, memberToken: undefined, memberId: undefined } : g
-    );
-    localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(list));
-  } catch (err) {
-    console.error('Failed to update group in localStorage:', err);
-  }
+  const list = getSavedGroups().map((g) =>
+    g.id === id ? { ...g, memberToken: undefined, memberId: undefined } : g
+  );
+  storage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(list));
 }
 
 export function removeSavedGroup(id: string): void {
-  if (typeof window === 'undefined') return;
-  try {
-    const list = getSavedGroups().filter((g) => g.id !== id);
-    localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(list));
-  } catch (err) {
-    console.error('Failed to remove group from localStorage:', err);
-  }
+  const list = getSavedGroups().filter((g) => g.id !== id);
+  storage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(list));
 }
 
 export function removeSavedSplit(slug: string): void {
-  if (typeof window === 'undefined') return;
-  try {
-    const list = getSavedSplits().filter((s) => s.slug !== slug);
-    localStorage.setItem(SPLITS_STORAGE_KEY, JSON.stringify(list));
-  } catch (err) {
-    console.error('Failed to remove split from localStorage:', err);
-  }
+  const list = getSavedSplits().filter((s) => s.slug !== slug);
+  storage.setItem(SPLITS_STORAGE_KEY, JSON.stringify(list));
 }
 
 export function getSavedSplitToken(slug: string): string | null {
