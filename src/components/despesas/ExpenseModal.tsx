@@ -208,7 +208,7 @@ export function ExpenseModal({
       description="Registre os detalhes e como o valor será distribuído entre os membros."
       maxWidth="xl"
     >
-      <form onSubmit={handleSaveExpense} className="space-y-3.5">
+      <form onSubmit={handleSaveExpense} className="space-y-3.5" noValidate>
         {expenseFormError && (
           <div
             role="alert"

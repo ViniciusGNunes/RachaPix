@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/lib/api';
 import { toast } from '@/components/ui/Toast';
 import { describeThisDevice } from '@/lib/device';
-import { saveGroup } from '@/lib/storage';
+import { getGroupCredentials, saveGroup } from '@/lib/storage';
 import {
   useGroup,
   useExpenses,
@@ -17,7 +17,7 @@ import {
   useRotateInvite,
   groupKeys,
 } from '@/lib/query';
-import { useGroupSession } from '@/hooks/useGroupSession';
+import { saveHashCredentials, useGroupSession } from '@/hooks/useGroupSession';
 import { useGroupModals } from '@/hooks/useGroupModals';
 import { useGroupFilters } from '@/hooks/useGroupFilters';
 import { IdentityPicker } from '@/components/despesas/IdentityPicker';
@@ -27,7 +27,7 @@ import {
 } from '@/components/despesas/groupConstants';
 import { GroupHeader } from '@/components/despesas/GroupHeader';
 import { GroupModals } from '@/components/despesas/GroupModals';
-import { GroupLoadingSkeleton, GroupNotFound } from '@/components/despesas/GroupFeedback';
+import { GroupLoadingSkeleton, GroupNotFound, GroupNoAccess } from '@/components/despesas/GroupFeedback';
 import { ExpensesTab } from '@/components/despesas/ExpensesTab';
 import { BalancesTab } from '@/components/despesas/BalancesTab';
 import { SettlementsTab } from '@/components/despesas/SettlementsTab';
@@ -45,6 +45,8 @@ const TAB_LABELS: Record<TabType, string> = {
 
 function GroupDetailContent() {
   const groupId = useSearchParams().get('id') ?? '';
+  // Must run before useGroup fetches, so links with #t / #a open the group on the first request.
+  useMemo(() => saveHashCredentials(groupId), [groupId]);
   const { data: group, isLoading, error } = useGroup(groupId);
   useGroupSession(groupId, group, error);
   const modals = useGroupModals();
@@ -98,9 +100,13 @@ function GroupDetailContent() {
   };
 
   if (isLoading && !group) return <GroupLoadingSkeleton />;
-  if (error || !group) return <GroupNotFound error={error} />;
+  if (error || !group) {
+    const hasCredentials = !!getGroupCredentials(groupId);
+    if (error instanceof ApiError && error.status === 404 && !hasCredentials) return <GroupNoAccess />;
+    return <GroupNotFound error={error} />;
+  }
 
-  if (!group.yourMemberId) {
+  if (!group.yourMemberId && !group.isAdmin) {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 lg:pt-4 pb-28 lg:pb-12 w-full animate-fade-up">
         <Link

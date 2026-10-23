@@ -69,7 +69,7 @@ export function SplitAdminParticipants({
               </div>
 
               {!p.isOwner && (
-                <div className="flex items-center justify-end gap-2 pt-1 border-t border-zinc-800">
+                <div className="flex items-center justify-end gap-2">
                   {p.paymentPending && (
                     <button
                       type="button"

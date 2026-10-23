@@ -92,7 +92,7 @@ export function MemberModal({
       title={memberToEdit ? 'Editar Membro' : 'Novo Membro'}
       maxWidth="md"
     >
-      <form onSubmit={handleSaveMember} className="space-y-3.5">
+      <form onSubmit={handleSaveMember} className="space-y-3.5" noValidate>
         {memberError && (
           <div
             role="alert"

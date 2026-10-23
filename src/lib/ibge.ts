@@ -1,7 +1,6 @@
 import type { UF } from './formatters';
 
 const BASE_URL = 'https://servicodados.ibge.gov.br/api/v1/localidades/estados';
-const MAX_CITY_LENGTH = 15;
 
 const cache = new Map<UF, string[]>();
 
@@ -9,8 +8,6 @@ function toPixCity(name: string): string {
   return name
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
-    .trim()
-    .slice(0, MAX_CITY_LENGTH)
     .trim();
 }
 

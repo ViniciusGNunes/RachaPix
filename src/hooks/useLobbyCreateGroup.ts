@@ -56,6 +56,7 @@ export function useLobbyCreateGroup(onSuccessCreated?: () => void) {
   };
 
   const handleUpdateMember = (id: string, updates: Partial<InitialMemberField>) => {
+    setModalError(null);
     setMembers((prev) =>
       prev.map((m) => (m.id === id ? { ...m, ...updates } : m))
     );
@@ -142,7 +143,10 @@ export function useLobbyCreateGroup(onSuccessCreated?: () => void) {
     createdGroup,
     closeCreatedGroup,
     name,
-    setName,
+    setName: (value: string) => {
+      setModalError(null);
+      setName(value);
+    },
     description,
     setDescription,
     members,
