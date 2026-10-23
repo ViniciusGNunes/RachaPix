@@ -36,9 +36,12 @@ export function GroupSettingsModal({
 
   const handleSaveGroupSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editGroupName.trim()) return;
-
     setGroupSettingsError(null);
+    if (!editGroupName.trim()) {
+      setGroupSettingsError('O nome do grupo é obrigatório.');
+      return;
+    }
+
     try {
       const updated = await updateGroupMutation.mutateAsync({
         id: group.id,
@@ -82,7 +85,7 @@ export function GroupSettingsModal({
           </div>
         )}
 
-        <form onSubmit={handleSaveGroupSettings} className="space-y-3.5">
+        <form onSubmit={handleSaveGroupSettings} className="space-y-3.5" noValidate>
           <div>
             <label htmlFor="edit-group-name" className="block text-[13px] font-medium text-zinc-400 mb-1">
               Nome do Grupo

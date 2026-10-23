@@ -18,8 +18,9 @@ interface InvitePanelProps {
   variant?: 'hero' | 'card';
 }
 
-export function inviteUrlFor(groupId: string, token?: string | null): string {
-  const hash = token ? `#t=${token}` : '';
+/** `#t=` carries the invite token; `#a=` carries the admin recovery token (kept apart so it gets admin rights). */
+export function inviteUrlFor(groupId: string, token?: string | null, kind: 'invite' | 'admin' = 'invite'): string {
+  const hash = token ? `#${kind === 'admin' ? 'a' : 't'}=${token}` : '';
   return `${absoluteUrl(groupPath(groupId))}${hash}`;
 }
 
@@ -37,7 +38,7 @@ export function InvitePanel({
   if (!inviteToken) return null;
 
   const inviteUrl = inviteUrlFor(groupId, inviteToken);
-  const adminUrl = adminToken ? inviteUrlFor(groupId, adminToken) : null;
+  const adminUrl = adminToken ? inviteUrlFor(groupId, adminToken, 'admin') : null;
   const message = `Entre no meu grupo no RachaPix: ${inviteUrl}`;
   const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 

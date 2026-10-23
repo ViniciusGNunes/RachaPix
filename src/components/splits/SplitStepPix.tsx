@@ -137,7 +137,6 @@ export function SplitStepPix({
               <Combobox
                 ariaLabel="Cidade"
                 className="flex-1 min-w-0"
-                maxLength={15}
                 placeholder="Ex: Sao Paulo"
                 value={receiverCity}
                 onChange={setCityOverride}

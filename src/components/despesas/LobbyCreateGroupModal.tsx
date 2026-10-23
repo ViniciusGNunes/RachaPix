@@ -54,7 +54,7 @@ export function LobbyCreateGroupModal({
       description="Defina o nome do grupo e adicione os membros iniciais."
       maxWidth="lg"
     >
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
         {modalError && (
           <div
             role="alert"

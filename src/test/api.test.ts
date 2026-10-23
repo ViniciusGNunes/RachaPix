@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { api, ApiError } from '@/lib/api';
-import { saveGroup, removeSavedGroup } from '@/lib/storage';
+import { api, ApiError, IDENTITY_LOST_EVENT } from '@/lib/api';
+import { getGroupCredentials, saveGroup, removeSavedGroup } from '@/lib/storage';
 
 describe('api.ts request layer', () => {
   const originalFetch = globalThis.fetch;
@@ -238,6 +238,37 @@ describe('api.ts request layer', () => {
 
       // Because claimMember explicitly supplies X-Group-Token, attachGroupToken does not overwrite it
       expect(capturedHeaders?.get('X-Group-Token')).toBe('stored-invite-token');
+    });
+  });
+
+  describe('Lost identity', () => {
+    const groupId = '12345678-1234-1234-1234-123456789abc';
+    const notFound = () =>
+      vi.fn().mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: '',
+        json: async () => ({ status: 404, detail: `Group '${groupId}' not found.` }),
+      } as unknown as Response);
+
+    it('forgets the personal token and warns the page when a member call returns 404', async () => {
+      saveGroup({ id: groupId, accessToken: 'invite', memberToken: 'member', memberId: 'm1' });
+      const onLost = vi.fn();
+      window.addEventListener(IDENTITY_LOST_EVENT, onLost);
+      globalThis.fetch = notFound();
+
+      await expect(api.getGroup(groupId)).rejects.toThrow(/Escolha quem você é novamente/);
+
+      window.removeEventListener(IDENTITY_LOST_EVENT, onLost);
+      expect(onLost).toHaveBeenCalledTimes(1);
+      expect(getGroupCredentials(groupId)?.memberToken).toBeUndefined();
+      expect(getGroupCredentials(groupId)?.accessToken).toBe('invite');
+    });
+
+    it('keeps the plain not found message when no personal token was sent', async () => {
+      saveGroup({ id: groupId, accessToken: 'invite' });
+      globalThis.fetch = notFound();
+      await expect(api.getGroup(groupId)).rejects.toThrow('Grupo não encontrado.');
     });
   });
 });

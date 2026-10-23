@@ -40,6 +40,28 @@ export function GroupLoadingSkeleton() {
   );
 }
 
+export function GroupNoAccess() {
+  return (
+    <div className="max-w-md mx-auto px-4 py-20 text-center animate-fade-up">
+      <div className="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/30 flex items-center justify-center mx-auto mb-3.5">
+        <AlertCircle className="w-6 h-6" />
+      </div>
+      <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-50 mb-2">
+        Sem acesso a este grupo
+      </h1>
+      <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
+        Você não tem permissão para ver este grupo. Peça um link de convite a quem já participa.
+      </p>
+      <Link
+        href="/despesas"
+        className="inline-flex items-center justify-center h-10 sm:h-9 px-4 bg-accent text-accent-fg rounded-md text-sm font-medium hover:bg-accent-hover transition-colors shadow-sm"
+      >
+        Voltar para grupos
+      </Link>
+    </div>
+  );
+}
+
 export function GroupNotFound({ error }: Readonly<{ error: unknown }>) {
   return (
     <div className="max-w-md mx-auto px-4 py-20 text-center animate-fade-up">
