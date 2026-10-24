@@ -39,7 +39,10 @@ function usePopoverPosition(open: boolean, anchorRef: React.RefObject<HTMLElemen
     const el = anchorRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom - VIEWPORT_MARGIN;
+    const viewportBottom = window.visualViewport
+      ? window.visualViewport.offsetTop + window.visualViewport.height
+      : window.innerHeight;
+    const spaceBelow = viewportBottom - rect.bottom - VIEWPORT_MARGIN;
     const spaceAbove = rect.top - VIEWPORT_MARGIN;
     const placeAbove =
       (spaceBelow < MAX_LIST_HEIGHT && spaceAbove > spaceBelow) ||
@@ -84,9 +87,14 @@ function usePopoverPosition(open: boolean, anchorRef: React.RefObject<HTMLElemen
       update();
     };
     window.addEventListener('resize', update);
+    // Software keyboard resizes the visual viewport without resizing the window (mobile).
+    window.visualViewport?.addEventListener('resize', update);
+    window.visualViewport?.addEventListener('scroll', update);
     window.addEventListener('scroll', onScroll, true);
     return () => {
       window.removeEventListener('resize', update);
+      window.visualViewport?.removeEventListener('resize', update);
+      window.visualViewport?.removeEventListener('scroll', update);
       window.removeEventListener('scroll', onScroll, true);
     };
   }, [open, update]);

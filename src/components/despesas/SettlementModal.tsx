@@ -126,7 +126,7 @@ export function SettlementModal({
       description="Registre uma transferência de dinheiro entre membros para abater saldos."
       maxWidth="md"
     >
-      <form onSubmit={handleSaveSettlement} className="space-y-3.5">
+      <form onSubmit={handleSaveSettlement} className="space-y-3.5" noValidate>
         {settlementError && (
           <div
             role="alert"

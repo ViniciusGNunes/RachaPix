@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { api, ApiError, type GroupDto } from '@/lib/api';
+import { api, ApiError, IDENTITY_LOST_EVENT, type GroupDto } from '@/lib/api';
 import { describeThisDevice } from '@/lib/device';
 import { groupKeys } from '@/lib/query';
 import {
@@ -9,6 +9,22 @@ import {
   saveGroup,
 } from '@/lib/storage';
 import { toast } from '@/components/ui/Toast';
+
+const LIVE_REFRESH_MS = 15000;
+
+/**
+ * Stores the invite (#t) and admin (#a) tokens from the URL hash.
+ * Runs during the first render so the first request already carries them.
+ */
+export function saveHashCredentials(groupId: string): boolean {
+  if (!groupId || typeof window === 'undefined') return false;
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const hashToken = hashParams.get('t');
+  const adminHashToken = hashParams.get('a');
+  if (hashToken) saveGroup({ id: groupId, accessToken: hashToken });
+  if (adminHashToken) saveGroup({ id: groupId, adminToken: adminHashToken });
+  return Boolean(hashToken || adminHashToken);
+}
 
 export function useGroupSession(
   groupId: string,
@@ -22,11 +38,18 @@ export function useGroupSession(
     if (!groupId) return;
 
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-    const hashToken = hashParams.get('t');
+    const adminHashToken = hashParams.get('a');
     const linkCode = hashParams.get('link');
 
-    if (hashToken) {
-      saveGroup({ id: groupId, accessToken: hashToken });
+    const savedNow = saveHashCredentials(groupId);
+
+    if (adminHashToken) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
+    // A load that ran without credentials cached a 404; reset clears that error and refetches.
+    if (savedNow && queryClient.getQueryState(groupKeys.detail(groupId))?.status === 'error') {
+      queryClient.resetQueries({ queryKey: groupKeys.detail(groupId) });
     }
 
     if (linkCode) {
@@ -58,6 +81,36 @@ export function useGroupSession(
       });
     }
   }, [group]);
+
+  // Keep the open group in sync with changes made from other devices (totals, members, expenses).
+  useEffect(() => {
+    if (!groupId) return;
+    const refreshGroup = () => {
+      if (document.visibilityState !== 'visible') return;
+      queryClient.invalidateQueries({ queryKey: groupKeys.detail(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupKeys.expenses(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupKeys.settlements(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupKeys.balances(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupKeys.stats(groupId) });
+    };
+    const interval = window.setInterval(refreshGroup, LIVE_REFRESH_MS);
+    document.addEventListener('visibilitychange', refreshGroup);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', refreshGroup);
+    };
+  }, [groupId, queryClient]);
+
+  // A call made with a stale personal token already dropped it; reload so the identity picker shows up.
+  useEffect(() => {
+    if (!groupId) return;
+    const onIdentityLost = (e: Event) => {
+      if ((e as CustomEvent<string>).detail !== groupId) return;
+      void queryClient.invalidateQueries({ queryKey: groupKeys.all });
+    };
+    window.addEventListener(IDENTITY_LOST_EVENT, onIdentityLost);
+    return () => window.removeEventListener(IDENTITY_LOST_EVENT, onIdentityLost);
+  }, [groupId, queryClient]);
 
   // Clean stale member token if group yields 404
   useEffect(() => {

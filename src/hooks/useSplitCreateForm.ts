@@ -64,7 +64,7 @@ export function useSplitCreateForm() {
 
   const [participants, setParticipants] = useState<ParticipantField[]>([
     { id: '1', name: 'Eu (Organizador)', isOwner: true, amount: '' },
-    { id: '2', name: 'Amigo 1', isOwner: false, amount: '' },
+    { id: '2', name: '', isOwner: false, amount: '' },
   ]);
 
   const [step, setStep] = useState(0);
@@ -176,9 +176,7 @@ export function useSplitCreateForm() {
     if (!receiverName.trim() || receiverName.length > 25) {
       return 'O nome do recebedor deve ter até 25 caracteres.';
     }
-    if (receiverCity.length > 15) {
-      return 'A cidade deve ter até 15 caracteres.';
-    }
+    // No length error for the city: names show in full, and the Pix payload keeps the first 15 chars (sanitizePixCity).
     return null;
   };
 

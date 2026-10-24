@@ -18,7 +18,6 @@ export function SplitSummaryDesktop({
   participantsCount,
   equalAmount,
   loading,
-  termsAccepted,
 }: Readonly<SplitSummaryDesktopProps>) {
   return (
     <div className="hidden lg:block sticky top-20 rounded-lg bg-zinc-900 border border-zinc-800 p-4 space-y-3.5">
@@ -51,7 +50,7 @@ export function SplitSummaryDesktop({
 
       <button
         type="submit"
-        disabled={loading || !termsAccepted}
+        disabled={loading}
         className="w-full h-9 rounded-md bg-accent hover:bg-accent-hover text-accent-fg font-semibold text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? 'Criando...' : 'Criar racha'}
